@@ -125,7 +125,7 @@ public class GraphMover : MonoBehaviour, IDragHandler
 	#region Zoom
 	public void Zoom(float sign)
 	{
-		if (sign == 0)
+		if (sign == 0 || CursorRaycaster.IsCursorOverObjectWithTag(GetRawCursorPos(), "LeftUIPanel", out _))
 			return;
 
 		float size = Mathf.Clamp(transform.localScale.x + zoomStep * sign, minZoomSize, maxZoomSize);
@@ -176,7 +176,7 @@ public class GraphMover : MonoBehaviour, IDragHandler
 	#region Cursor
 	private Vector2 GetCursorOffset()
 	{
-		var cursorPos = input.UI.Position.ReadValue<Vector2>();
+		var cursorPos = GetRawCursorPos();
 		if (!CursorRaycaster.IsCursorOverObjectWithTag(cursorPos, "DragZone", out _))
 			return Vector2.zero;
 
@@ -184,6 +184,10 @@ public class GraphMover : MonoBehaviour, IDragHandler
 		cursorPos -= canvasRectTransform.rect.size / 2; // Перемещение нуля в центр
 
 		return cursorPos - zoomCenter;
+	}
+	private Vector2 GetRawCursorPos()
+	{
+		return input.UI.Position.ReadValue<Vector2>();
 	}
 	#endregion
 }
