@@ -9,21 +9,23 @@ public class FileReader
 	/// <summary> Читает все файлы с кодом в папке и вовзращает массив их содержимого ( string[] ). </summary>
 	public string[] LoadCodeFilesFromFolder(string folderPath, string searchPattern = "*.cs")
 	{
-		if (!Directory.Exists(folderPath))
-			return new string[0];
+		//if (!Directory.Exists(folderPath))
+		//	return new string[0];
 
-		// Getting all code file names
-		string[] fileNames = Directory.GetFiles(folderPath, searchPattern);
-		List<string> files = new List<string>(fileNames.Length);
+		//// Getting all code file names
+		//string[] fileNames = Directory.GetFiles(folderPath, searchPattern);
+		//List<string> files = new List<string>(fileNames.Length);
 
-		// Loading all code files
-		foreach (var fileName in fileNames)
-		{
-			if (File.Exists(fileName))
-				files.Add(ReadFile(fileName));
-		}
+		//// Loading all code files
+		//foreach (var fileName in fileNames)
+		//{
+		//	if (File.Exists(fileName))
+		//		files.Add(ReadFile(fileName));
+		//}
 
-		return files.ToArray();
+		//return files.ToArray();
+
+		return new string[1] { ReadFile("") };
 	}
 
 
@@ -31,51 +33,37 @@ public class FileReader
 	/// <summary> Читает конкретный файл и возвращает его содержимое (текст). </summary>
 	public string ReadFile(string fileName)
 	{
-		return File.ReadAllText(fileName);
+		//return File.ReadAllText(fileName);
 
 		// TODO: убрать заглушку из чтения файла
 
-		/*
+		///*
 
 		return @"
                 using System;
 
-                class Writer
+                class FirstClass
                 {
-                    public static string Main(string message)
+					public static string Name => ""Имя первого класса"";
+
+					static int a = 5;
+
+                    public static int[] FindBestPath(int[,] graph, int s, int h)
                     {
-                        return message + "" готовый!!11!!!!"";
+                        return new int[1] { a };
                     }
                 }
 
-				class SuperWriter
+				class SecondClass
                 {
-                    public static string Main(string message)
-                    {
-                        return message + message + message + "" готовый!!11!!!!"";
-                    }
-                }
+					public static string Name { get; } = ""Имя второго класса"";
 
-				class Something
-                {
-                }
-
-				class SomethingNew
-                {
-					public static string Main(int a)
+					public static int[] FindBestPath(int[,] graph, int a, int b)
                     {
-                        return a + a + a + "" готовый!!11!!!!"";
-                    }
-                }
-
-				class Amdhasd
-                {
-					public static int Main(string message)
-                    {
-                        return 5;
+                        return new int[1] { 10 };
                     }
                 }";
 
-		*/
+		//*/
 	}
 }

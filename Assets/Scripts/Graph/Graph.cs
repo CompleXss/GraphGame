@@ -18,6 +18,8 @@ public class Graph : MonoBehaviour
 
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
+	public Node StartNode { get; private set; }
+	public Node EndNode { get; private set; }
 
 
 
@@ -116,6 +118,25 @@ public class Graph : MonoBehaviour
 			text.localScale = newScale;
 		}
 	}
+
+
+
+
+
+
+	public void FindBestPath(FindBestPathDelegate algorithm)
+	{
+		var path = algorithm(Matrix, 0, 0);
+		Debug.Log("Поиск лучшего маршрута");
+	}
+
+	public void FindAllPaths(FindAllPathsDelegate algorithm)
+	{
+		var paths = algorithm(Matrix, 0, 0);
+		Debug.Log("Поиск всех маршрутов");
+	}
+
+
 
 
 

@@ -11,9 +11,8 @@ using Microsoft.CodeAnalysis.Emit;
 
 using UnityEngine;
 
-
-
-public delegate string PathfindingAlgorithm(string message);
+public delegate int[] FindBestPathDelegate(int[,] graph, int startNode, int endNode);
+public delegate int[][] FindAllPathsDelegate(int[,] graph, int startNode, int endNode);
 
 
 
@@ -52,36 +51,80 @@ public class ScriptLoader
 
 		foreach (var t in assembly.DefinedTypes)
 		{
-			if (!t.DeclaredMethods.Any(x => x.Name == "Main"
-										 && x.IsPublic
-										 && x.IsStatic))
-			{
-				Debug.LogWarning($"There is no public static method named \"Main\" in class \"{t.FullName}\"");
-				continue;
-			}
+			var name = GetNamePropertyValueOrNull(assembly, t, "Name");
+			if (string.IsNullOrWhiteSpace(name))
+				name = t.Name;
 
-			try
-			{
-				// create instance of the desired class and call the desired function
-				Type type = assembly.GetType(t.FullName);
-				object obj = Activator.CreateInstance(type);
+			var findBestPathMethod = GetMethodOrNull<FindBestPathDelegate>(assembly, t, "FindBestPath");
+			var findAllPathsMethod = GetMethodOrNull<FindAllPathsDelegate>(assembly, t, "FindAllPaths");
 
-				var methodInfo = type.GetMethod("Main");
-				var func = (PathfindingAlgorithm)methodInfo.CreateDelegate(typeof(PathfindingAlgorithm));
-
-				algorithms.Add(func);
-			}
-			catch (Exception e)
-			{
-				// TODO: логи при неправильной загрузке
-				Debug.LogWarning($"{t.FullName}: {e.Message}");
-			}
+			algorithms.Add(new PathfindingAlgorithm(name, findBestPathMethod, findAllPathsMethod));
 		}
 
 		return algorithms.ToArray();
 	}
 
+	private string GetNamePropertyValueOrNull(Assembly assembly, System.Reflection.TypeInfo t, string propName)
+	{
+		if (!t.DeclaredProperties.Any(x => x.Name == propName
+										 && x.CanRead
+										 && x.GetMethod.IsPublic
+										 && x.GetMethod.IsStatic
+										 && x.PropertyType == typeof(string)))
+		{
+			// TODO: логи, если нет нужного свойства
+			Debug.LogWarning($"В классе \"{t.FullName}\" нет свойства public static string {propName} с get-аксессором.");
+			//Debug.LogWarning($"There is no public static string {propName} property with get-accessor in class \"{t.FullName}\".");
+			return null;
+		}
 
+		try
+		{
+			Type type = assembly.GetType(t.FullName);
+
+			var prop = type.GetProperty(propName);
+			var getNameMethod = (Func<string>)prop.GetMethod.CreateDelegate(typeof(Func<string>));
+			var name = getNameMethod();
+
+			return name;
+		}
+		catch (Exception e)
+		{
+			// TODO: логи при неправильной загрузке (?)
+			Debug.LogWarning($"{t.FullName}: {e.Message}");
+			return null;
+		}
+	}
+
+	/// <summary> Ищет в сборке public static метод с данным именем, соответствующий данному делегату. Если такого метода нет, возвращает null. </summary>
+	private T GetMethodOrNull<T>(Assembly assembly, System.Reflection.TypeInfo t, string methodName) where T : Delegate
+	{
+		if (!t.DeclaredMethods.Any(x => x.Name == methodName
+										 && x.IsPublic
+										 && x.IsStatic))
+		{
+			// TODO: логи, если нет нужного метода
+			Debug.LogWarning($"В классе \"{t.FullName}\" нет public static метода с именем \"{methodName}\".");
+			//Debug.LogWarning($"There is no public static method named \"{methodName}\" in class \"{t.FullName}\".");
+			return null;
+		}
+
+		try
+		{
+			Type type = assembly.GetType(t.FullName);
+
+			var methodInfo = type.GetMethod(methodName);
+			var method = (T)methodInfo.CreateDelegate(typeof(T));
+
+			return method;
+		}
+		catch (Exception e)
+		{
+			// TODO: логи при неправильной загрузке
+			Debug.LogWarning($"{t.FullName}: {e.Message}");
+			return null;
+		}
+	}
 
 	/// <summary> Создает DLL из текста (исходного кода) и загружает его в ОЗУ. Если произошла ошибка, возвращает null. </summary>
 	private Assembly GetAssemblyFromTextOrNull(string text)
