@@ -22,7 +22,7 @@ public class AlgorithmButton : MonoBehaviour
 
 
 
-	public void DisableSubButton(string subBtnName)
+	public void DisableSubButtons(string subBtnName)
 	{
 		var btn = transform.Find(subBtnName);
 

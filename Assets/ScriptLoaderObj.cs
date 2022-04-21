@@ -32,26 +32,28 @@ public class ScriptLoaderObj : MonoBehaviour
 		{
 			var algObj = Instantiate(algButtonsPrefab, algsGroupObj);
 			algObj.UIName = alg.Name;
+			algObj.name = alg.Name;
 
 
 
-			// Отключение кнопок, если соответствующего метода нет
+			// Настройка кнопок или их отключение, если соответствующего метода нет
+			// TODO: лишние кнопки не отключаются
 			if (alg.FindBestPath == null)
-				algObj.DisableSubButton("Find Best Path");
+				algObj.DisableSubButtons("Find Best Path");
 			else
 			{
 				algObj.FindBestPathBtn.onClick.AddListener(() => graph.FindBestPath(alg.FindBestPath));
 			}
 
 			if (alg.FindAllPaths == null)
-				algObj.DisableSubButton("Find More Paths");
+				algObj.DisableSubButtons("Find More Paths");
 			else
 			{
 				algObj.FindAllPathsBtn.onClick.AddListener(() => graph.FindAllPaths(alg.FindAllPaths));
 			}
 
 			if (true) // TODO: if (true)
-				algObj.DisableSubButton("Algorithm teaching");
+				algObj.DisableSubButtons("Algorithm teaching");
 			else
 			{
 				// TODO: алгоритм обучения
