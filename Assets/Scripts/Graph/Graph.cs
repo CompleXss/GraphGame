@@ -120,23 +120,74 @@ public class Graph : MonoBehaviour
 	}
 
 
-
+	private void DrawPath(int[] path)
+	{
+		// TODO: отрисовка пути
+	}
 
 
 
 	public void FindBestPath(FindBestPathDelegate algorithm)
 	{
 		var path = algorithm(Matrix, 0, 0);
-		Debug.Log("Поиск лучшего маршрута");
+
+		// test
+		path = new int[4] { 0, 1, 2, 3 };
+
+		if (ValidatePath(path))
+		{
+			DrawPath(path);
+		}
+		else
+			Debug.LogWarning("Ошибка пути.");
+
+
+
+		Debug.Log("Поиск лучшего маршрута завершен!");
 	}
 
 	public void FindAllPaths(FindAllPathsDelegate algorithm)
 	{
 		var paths = algorithm(Matrix, 0, 0);
+
+		// TODO: Поиск всех маршрутов
 		Debug.Log("Поиск всех маршрутов");
 	}
 
+	private bool ValidatePath(int[] path)
+	{
+		if (path == null
+			|| path.Length < 1
+			|| path[0] != StartNode.ID
+			|| path[path.Length - 1] != EndNode.ID)
+			return false;
 
+		// Проверка на упоминание ноды всего раз
+		var nodeVisitedTimes = new Dictionary<int, int>();
+
+		foreach (var p in path)
+		{
+			if (nodeVisitedTimes.ContainsKey(p))
+				nodeVisitedTimes[p]++;
+			else
+				nodeVisitedTimes[p] = 1;
+		}
+		if (!nodeVisitedTimes.Values.ToList().TrueForAll(x => x < 2))
+			return false;
+
+		// Проверка на допустимость маршрута (такие пути существуют)
+		for (int i = 0; i < path.Length - 1; i++)
+		{
+			if (!nodes.Find(x => x.ID == path[i]).Connections.Any(x => x.node.ID == path[i + 1]))
+				return false;
+		}
+
+
+
+		// TODO: доп валидация?
+
+		return true;
+	}
 
 
 
