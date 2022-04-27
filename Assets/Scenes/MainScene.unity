@@ -488,6 +488,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lineInfo: {fileID: 11400000, guid: dce229607423d8542ac06a9552635761, type: 2}
+  startNode: {fileID: 1488851512}
+  endNode: {fileID: 1242265028}
 --- !u!1 &409710691
 GameObject:
   m_ObjectHideFlags: 0
@@ -2698,6 +2700,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1398708135}
     m_Modifications:
+    - target: {fileID: 7165561525250967077, guid: aa847a932bfcee74cb478c594d9bafb6, type: 3}
+      propertyPath: m_text
+      value: "\u0410\u043B\u0433\u043E\u0440\u0438\u0442\u043C \u0414\u0435\u0439\u043A\u0441\u0442\u0440\u044B"
+      objectReference: {fileID: 0}
     - target: {fileID: 7165561526527982968, guid: aa847a932bfcee74cb478c594d9bafb6, type: 3}
       propertyPath: m_IsActive
       value: 0

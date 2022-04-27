@@ -44,11 +44,11 @@ public class FileReader
 
                 class FirstClass
                 {
-					public static string Name => ""Имя первого класса"";
+					string Name => ""Имя первого класса"";
 
-					static int a = 5;
+					int a = 5;
 
-                    public static int[] FindBestPath(int[,] graph, int s, int h)
+                    int[] FindBestPath(int[,] graph, int s, int h)
                     {
                         return new int[1] { a };
                     }
@@ -56,11 +56,19 @@ public class FileReader
 
 				class SecondClass
                 {
-					public static string Name { get; } = ""Имя второго класса"";
+					string Name { get; } = ""Имя второго класса"";
 
-					public static int[] FindBestPath(int[,] graph, int a, int b)
+					int[] FindBestPath(int[,] graph, int a, int b)
                     {
                         return new int[1] { 10 };
+                    }
+                }
+
+				struct ThirdStruct
+                {
+					int[] FindBestPath(int[,] graph, int a, int b)
+                    {
+                        return new int[1] { 30 };
                     }
                 }";
 

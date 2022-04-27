@@ -1,3 +1,8 @@
+using System;
+using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -20,13 +25,34 @@ public class AlgorithmButton : MonoBehaviour
 		set { nameText.text = value; }
 	}
 
-
-
-	public void DisableSubButtons(string subBtnName)
+	private List<Button> btnProps;
+	void Awake()
 	{
-		var btn = transform.Find(subBtnName);
+		btnProps = new List<Button>();
 
-		if (btn != null)
-			btn.gameObject.SetActive(false);
+		foreach (var prop in this.GetType().GetProperties())
+			if (prop.PropertyType == typeof(Button))
+			{
+				btnProps.Add((Button)prop.GetValue(this));
+			}
+	}
+
+
+
+	/// <summary> Передавайте как параметр только кнопки, принадлежащие этому классу. </summary>
+	public void SetSubButtonVisibleState(Button button, bool state)
+	{
+		if (button.gameObject.activeSelf == state || !btnProps.Contains(button))
+			return;
+
+		button.gameObject.SetActive(state);
+
+		// Изменение размера кнопки
+		var heightDelta = new Vector2(0f, button.GetComponent<RectTransform>().sizeDelta.y);
+
+		if (!state)
+			heightDelta.y *= -1f;
+
+		button.transform.parent.GetComponent<RectTransform>().sizeDelta += heightDelta;
 	}
 }

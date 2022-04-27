@@ -7,8 +7,15 @@ using UnityEngine;
 
 public class DijkstraAlgorithm
 {
-	public static int[] GetShortestPath(int[,] graph, int startNode, int endNode)
+	public static int[] FindBestPath(int[,] graph, int startNode, int endNode)
 	{
+		if (startNode == endNode)
+			return new int[1] { startNode };
+
+		// Previous nodes in optimal path from source
+		var path = new List<int>();
+		var previous = new Dictionary<int, int>();
+
 		// Init
 		int nodeCount = graph.GetLength(0);
 
@@ -18,28 +25,42 @@ public class DijkstraAlgorithm
 		distancies[startNode] = 0;
 
 		// Start
-		for (int count = 0; count < nodeCount - 1; count++)
+		for (int count = 0; count < nodeCount; count++)
 		{
-			int next = MinDistance(distancies, shortestPathCalculated);
-			shortestPathCalculated[next] = true;
+			int cur = MinDistance(distancies, shortestPathCalculated);
+			shortestPathCalculated[cur] = true;
+
+			// Если мы наткнулись на то, что ищем
+			if (cur == endNode)
+			{
+				// Построить кратчайший путь
+				while (previous.ContainsKey(cur))
+				{
+					path.Add(cur);
+
+					cur = previous[cur];
+				}
+				path.Add(cur);
+
+				break;
+			}
+
+
 
 			for (int node = 0; node < nodeCount; node++)
 				if (!shortestPathCalculated[node]
-					&& Convert.ToBoolean(graph[next, node]) // != 0
-					&& distancies[next] != int.MaxValue
-					&& distancies[next] + graph[next, node] < distancies[node])
+					&& Convert.ToBoolean(graph[cur, node]) // != 0
+					&& distancies[cur] != int.MaxValue
+					&& distancies[cur] + graph[cur, node] < distancies[node])
 				{
-					distancies[node] = distancies[next] + graph[next, node];
+					distancies[node] = distancies[cur] + graph[cur, node];
+					previous[node] = cur;
 				}
 		}
 
-
-
-
-
-
 		// TODO: дейкстра
-		return new int[0];
+		path.Reverse();
+		return path.ToArray();
 	}
 
 	private static int MinDistance(int[] distancies, bool[] shortestPathCalculated)

@@ -51,6 +51,10 @@ public class ScriptLoader
 
 		foreach (var t in assembly.DefinedTypes)
 		{
+			// Нам нужны только классы (не абстрактные) и структуры
+			if ((!t.IsClass || t.IsAbstract) && !t.IsValueType)
+				continue;
+
 			var name = GetNamePropertyValueOrNull(assembly, t, "Name");
 			if (string.IsNullOrWhiteSpace(name))
 				name = t.Name;
@@ -64,17 +68,16 @@ public class ScriptLoader
 		return algorithms.ToArray();
 	}
 
+	/// <summary> Ищет в сборке string свойство с данным именем. Если такого свойства нет, возвращает null. </summary>
 	private string GetNamePropertyValueOrNull(Assembly assembly, System.Reflection.TypeInfo t, string propName)
 	{
 		if (!t.DeclaredProperties.Any(x => x.Name == propName
 										 && x.CanRead
-										 && x.GetMethod.IsPublic
-										 && x.GetMethod.IsStatic
 										 && x.PropertyType == typeof(string)))
 		{
 			// TODO: логи, если нет нужного свойства
-			Debug.LogWarning($"В классе \"{t.FullName}\" нет свойства public static string {propName} с get-аксессором.");
-			//Debug.LogWarning($"There is no public static string {propName} property with get-accessor in class \"{t.FullName}\".");
+			Debug.LogWarning($"В классе \"{t.FullName}\" нет свойства string {propName} с get-аксессором.");
+			//Debug.LogWarning($"There is no string {propName} property with get-accessor in class \"{t.FullName}\".");
 			return null;
 		}
 
@@ -82,30 +85,31 @@ public class ScriptLoader
 		{
 			Type type = assembly.GetType(t.FullName);
 
-			var prop = type.GetProperty(propName);
-			var getNameMethod = (Func<string>)prop.GetMethod.CreateDelegate(typeof(Func<string>));
-			var name = getNameMethod();
+			object obj = null;
+			if (!type.IsAbstract) // Если класс не статический
+				obj = Activator.CreateInstance(type);
+
+			var prop = type.GetProperty(propName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+			string name = (string)prop.GetValue(obj);
 
 			return name;
 		}
 		catch (Exception e)
 		{
 			// TODO: логи при неправильной загрузке (?)
-			Debug.LogWarning($"{t.FullName}: {e.Message}");
+			Debug.LogWarning($"Неправильная загрузка свойства с именем | {t.FullName}: {e.Message}");
 			return null;
 		}
 	}
 
-	/// <summary> Ищет в сборке public static метод с данным именем, соответствующий данному делегату. Если такого метода нет, возвращает null. </summary>
+	/// <summary> Ищет в сборке метод с данным именем, соответствующий данному делегату. Если такого метода нет, возвращает null. </summary>
 	private T GetMethodOrNull<T>(Assembly assembly, System.Reflection.TypeInfo t, string methodName) where T : Delegate
 	{
-		if (!t.DeclaredMethods.Any(x => x.Name == methodName
-										 && x.IsPublic
-										 && x.IsStatic))
+		if (!t.DeclaredMethods.Any(x => x.Name == methodName))
 		{
 			// TODO: логи, если нет нужного метода
-			Debug.LogWarning($"В классе \"{t.FullName}\" нет public static метода с именем \"{methodName}\".");
-			//Debug.LogWarning($"There is no public static method named \"{methodName}\" in class \"{t.FullName}\".");
+			Debug.LogWarning($"В классе \"{t.FullName}\" нет метода с именем \"{methodName}\".");
+			//Debug.LogWarning($"There is no method named \"{methodName}\" in class \"{t.FullName}\".");
 			return null;
 		}
 
@@ -113,15 +117,19 @@ public class ScriptLoader
 		{
 			Type type = assembly.GetType(t.FullName);
 
-			var methodInfo = type.GetMethod(methodName);
-			var method = (T)methodInfo.CreateDelegate(typeof(T));
+			object obj = null;
+			if (!type.IsAbstract) // Если класс не статический
+				obj = Activator.CreateInstance(type);
+
+			var methodInfo = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+			var method = (T)methodInfo.CreateDelegate(typeof(T), obj);
 
 			return method;
 		}
 		catch (Exception e)
 		{
 			// TODO: логи при неправильной загрузке
-			Debug.LogWarning($"{t.FullName}: {e.Message}");
+			Debug.LogWarning($"Неправильная загрузка метода | {t.FullName}: {e.Message}");
 			return null;
 		}
 	}

@@ -12,15 +12,26 @@ public class Graph : MonoBehaviour
 {
 	//[SerializeField] private LineRenderer linePrefab;
 	[SerializeField] private LineInfo lineInfo;
+	[SerializeField] private Node startNode;
+	[SerializeField] private Node endNode;
+
 	private List<Node> nodes;
 	private List<Transform> texts;
 
 
+
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
-	public Node StartNode { get; private set; }
-	public Node EndNode { get; private set; }
-
+	public Node StartNode
+	{
+		get => startNode;
+		private set => startNode = value;
+	}
+	public Node EndNode
+	{
+		get => endNode;
+		private set => endNode = value;
+	}
 
 
 	//Node currentNode;
@@ -129,17 +140,24 @@ public class Graph : MonoBehaviour
 
 	public void FindBestPath(FindBestPathDelegate algorithm)
 	{
-		var path = algorithm(Matrix, 0, 0);
+		var path = algorithm(Matrix, StartNode.ID, EndNode.ID);
 
-		// test
-		path = new int[4] { 0, 1, 2, 3 };
-
-		if (ValidatePath(path))
+		if (ValidateStartEndNodes() && ValidatePath(path))
 		{
 			DrawPath(path);
+
+			// Debug log
+			string res = "";
+			foreach (var p in path)
+				res += p + " ";
+
+			Debug.Log(res);
 		}
 		else
+		{
 			Debug.LogWarning("Ошибка пути.");
+			return;
+		}
 
 
 
@@ -152,6 +170,25 @@ public class Graph : MonoBehaviour
 
 		// TODO: Поиск всех маршрутов
 		Debug.Log("Поиск всех маршрутов");
+	}
+
+	private bool ValidateStartEndNodes()
+	{
+		bool validated = true;
+
+		if (StartNode == null)
+		{
+			Debug.LogWarning("StartNode is null.");
+			validated = false;
+		}
+
+		if (EndNode == null)
+		{
+			Debug.LogWarning("EndNode is null.");
+			validated = false;
+		}
+
+		return validated;
 	}
 
 	private bool ValidatePath(int[] path)

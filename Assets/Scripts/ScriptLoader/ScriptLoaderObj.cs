@@ -14,6 +14,7 @@ public class ScriptLoaderObj : MonoBehaviour
 
 	void Start()
 	{
+		InitConstantAlgs();
 		LoadAlgorithms();
 	}
 
@@ -37,28 +38,40 @@ public class ScriptLoaderObj : MonoBehaviour
 
 
 			// Настройка кнопок или их отключение, если соответствующего метода нет
-			// TODO: лишние кнопки не отключаются
 			if (alg.FindBestPath == null)
-				algObj.DisableSubButtons("Find Best Path");
+				algObj.SetSubButtonVisibleState(algObj.FindBestPathBtn, false);
 			else
 			{
+				algObj.SetSubButtonVisibleState(algObj.FindBestPathBtn, true);
 				algObj.FindBestPathBtn.onClick.AddListener(() => graph.FindBestPath(alg.FindBestPath));
 			}
 
 			if (alg.FindAllPaths == null)
-				algObj.DisableSubButtons("Find More Paths");
+				algObj.SetSubButtonVisibleState(algObj.FindAllPathsBtn, false);
 			else
 			{
+				algObj.SetSubButtonVisibleState(algObj.FindAllPathsBtn, true);
 				algObj.FindAllPathsBtn.onClick.AddListener(() => graph.FindAllPaths(alg.FindAllPaths));
 			}
 
 			if (true) // TODO: if (true)
-				algObj.DisableSubButtons("Algorithm teaching");
+				algObj.SetSubButtonVisibleState(algObj.AlgorithmTeachingBtn, false);
 			else
 			{
+				algObj.SetSubButtonVisibleState(algObj.AlgorithmTeachingBtn, true);
 				// TODO: алгоритм обучения
 			}
 		}
+	}
+
+
+
+	private void InitConstantAlgs()
+	{
+		var alg = algsGroupObj.GetComponentInChildren<AlgorithmButton>();
+
+		alg.FindBestPathBtn.onClick.AddListener(() => graph.FindBestPath(DijkstraAlgorithm.FindBestPath));
+		alg.SetSubButtonVisibleState(alg.FindBestPathBtn, true);
 	}
 
 	private void DestroyAlgButtons()

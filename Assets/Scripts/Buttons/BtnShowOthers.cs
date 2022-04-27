@@ -17,7 +17,7 @@ public class BtnShowOthers : MonoBehaviour
 		var heightDelta = new Vector2(0f, objToShow.GetComponent<RectTransform>().sizeDelta.y);
 		if (objToShow.activeSelf)
 		{
-			heightDelta *= -1f; // Уменьшить размер кнопки
+			heightDelta.y *= -1f; // Уменьшить размер кнопки
 		}
 		else if (btnController != null)
 			btnController.HideAllSubButtons(); // Если раскрываем эту кнопку, другие прячем

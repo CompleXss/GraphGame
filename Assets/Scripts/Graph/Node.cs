@@ -155,6 +155,14 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	//}
 
 
+	// Gizmos
+	void OnDrawGizmosSelected()
+	{
+		foreach (var con in connections)		
+			Gizmos.DrawLine(transform.position, con.node.transform.position);		
+	}
+
+
 
 	#region Cursor
 	private Vector2 GetCursorPos()
