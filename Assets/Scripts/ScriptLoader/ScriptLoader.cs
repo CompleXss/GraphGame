@@ -13,6 +13,7 @@ using UnityEngine;
 
 public delegate int[] FindBestPathDelegate(int[,] graph, int startNode, int endNode);
 public delegate int[][] FindAllPathsDelegate(int[,] graph, int startNode, int endNode);
+public delegate object AlgorithmTeaching(int[,] graph, ref int[] distancies, int startNode, int endNode);
 
 
 
@@ -61,8 +62,9 @@ public class ScriptLoader
 
 			var findBestPathMethod = GetMethodOrNull<FindBestPathDelegate>(assembly, t, "FindBestPath");
 			var findAllPathsMethod = GetMethodOrNull<FindAllPathsDelegate>(assembly, t, "FindAllPaths");
+			var algorithmTeaching = GetMethodOrNull<AlgorithmTeaching>(assembly, t, "GetAlgorithmStep");
 
-			algorithms.Add(new PathfindingAlgorithm(name, findBestPathMethod, findAllPathsMethod));
+			algorithms.Add(new PathfindingAlgorithm(name, findBestPathMethod, findAllPathsMethod, algorithmTeaching));
 		}
 
 		return algorithms.ToArray();

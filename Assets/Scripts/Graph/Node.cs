@@ -38,6 +38,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	void Awake()
 	{
 		ID = objectsCount++;
+		gameObject.name = "Node " + ID;
 
 		input = new InputMaster();
 		parent = gameObject.GetComponentInParent<Graph>().transform;
@@ -158,8 +159,8 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	// Gizmos
 	void OnDrawGizmosSelected()
 	{
-		foreach (var con in connections)		
-			Gizmos.DrawLine(transform.position, con.node.transform.position);		
+		foreach (var con in connections)
+			Gizmos.DrawLine(transform.position, con.node.transform.position);
 	}
 
 

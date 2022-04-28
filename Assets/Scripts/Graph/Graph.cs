@@ -70,7 +70,7 @@ public class Graph : MonoBehaviour
 
 		for (int i = 0; i < len; i++, len2++)
 			for (int j = 0; j < len2; j++)
-				if (Matrix[i, j] != 0)
+				if (Matrix[i, j] != 0 && Matrix[i, j] != int.MaxValue)
 				{
 					var line = Instantiate(lineInfo.LinePrefab, transform);
 
@@ -156,6 +156,12 @@ public class Graph : MonoBehaviour
 		else
 		{
 			Debug.LogWarning("Ошибка пути.");
+			string str = "";
+			foreach (var p in path)
+				str += p + " ";
+
+			Debug.LogWarning(str);
+
 			return;
 		}
 
@@ -170,6 +176,11 @@ public class Graph : MonoBehaviour
 
 		// TODO: Поиск всех маршрутов
 		Debug.Log("Поиск всех маршрутов");
+	}
+
+	public void AlgorithmTeaching(AlgorithmTeaching algorithm)
+	{
+		// TODO: algorithmStep
 	}
 
 	private bool ValidateStartEndNodes()
@@ -230,12 +241,14 @@ public class Graph : MonoBehaviour
 
 	private int[,] GetMatrix()
 	{
+		// TODO: переделать getMatrix?
+
 		// Matrix Init
 		int[,] distancies = new int[nodes.Count, nodes.Count];
 		for (int i = 0; i < nodes.Count; i++)
 			for (int j = 0; j < nodes.Count; j++)
 			{
-				distancies[i, j] = 0;
+				distancies[i, j] = i == j ? 0 : int.MaxValue;
 			}
 
 		// Matrix Fill
