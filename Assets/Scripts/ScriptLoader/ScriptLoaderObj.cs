@@ -66,7 +66,7 @@ public class ScriptLoaderObj : MonoBehaviour
 			else
 			{
 				algObj.SetSubButtonVisibleState(algObj.AlgorithmTeachingBtn, true);
-				algObj.AlgorithmTeachingBtn.onClick.AddListener(() => graph.AlgorithmTeaching(alg.AlgorithmTeaching));
+				algObj.AlgorithmTeachingBtn.onClick.AddListener(() => graph.StartAlgorithmTeaching(alg.AlgorithmTeaching));
 			}
 			#endregion
 		}

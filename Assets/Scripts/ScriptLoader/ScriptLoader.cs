@@ -13,7 +13,7 @@ using UnityEngine;
 
 public delegate int[] FindBestPathDelegate(int[,] graph, int startNode, int endNode);
 public delegate int[][] FindAllPathsDelegate(int[,] graph, int startNode, int endNode);
-public delegate object AlgorithmTeaching(int[,] graph, ref int[] distancies, int startNode, int endNode);
+public delegate int[] AlgorithmTeaching(int[,] graph, int startNode, int endNode, ref object dataToSave, out string message, out int nodeToHighlight);
 
 
 

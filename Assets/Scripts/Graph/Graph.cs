@@ -10,13 +10,19 @@ using TMPro;
 
 public class Graph : MonoBehaviour
 {
-	//[SerializeField] private LineRenderer linePrefab;
-	[SerializeField] private LineInfo lineInfo;
+	[SerializeField] private UI ui;
+
+	[Space]
 	[SerializeField] private Node startNode;
 	[SerializeField] private Node endNode;
 
+	[Header("Отрисовка линий")]
+	[SerializeField] private LineInfo lineInfo;
+	[SerializeField] private Transform linesParent;
+
 	private List<Node> nodes;
 	private List<Transform> texts;
+	private Queue<LineRenderer> finalPathLines;
 
 
 
@@ -34,19 +40,12 @@ public class Graph : MonoBehaviour
 	}
 
 
-	//Node currentNode;
-	//Node CurrentNode
-	//{
-	//	get => currentNode;
-	//	set { }
-	//}
-
-
 
 	void Awake()
 	{
 		nodes = new List<Node>();
 		texts = new List<Transform>();
+		finalPathLines = new Queue<LineRenderer>();
 
 		var children = GetComponentsInChildren<Node>();
 		nodes.AddRange(children);
@@ -72,14 +71,10 @@ public class Graph : MonoBehaviour
 			for (int j = 0; j < len2; j++)
 				if (Matrix[i, j] != 0 && Matrix[i, j] != int.MaxValue)
 				{
-					var line = Instantiate(lineInfo.LinePrefab, transform);
-
 					var firstNode = nodes.Find(x => x.ID == i);
 					var secondNode = nodes.Find(x => x.ID == j);
 
-					line.SetPosition(0, firstNode.transform.localPosition);
-					line.SetPosition(1, secondNode.transform.localPosition);
-
+					var line = DrawLine(firstNode.transform.localPosition, secondNode.transform.localPosition);
 					DrawLineText(line, firstNode, secondNode);
 				}
 
@@ -89,12 +84,71 @@ public class Graph : MonoBehaviour
 		//foreach (var node in nodes)
 		//	foreach (var con in node.Connections)
 		//	{
-		//		var line = Instantiate(linePrefab, transform);
+		//		var line = GetInstantiatedLine();
 		//		line.SetPosition(0, node.transform.localPosition);
 		//		line.SetPosition(1, con.node.transform.localPosition);
 		//	}
 	}
 
+	public void ZoomTexts(float scaleFactor)
+	{
+		foreach (var text in texts)
+		{
+			Vector3 localScale = text.localScale;
+			Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
+
+			text.localScale = newScale;
+		}
+	}
+
+
+
+	private void DrawPath(int[] path, Color color)
+	{
+		// TODO: проверить отрисовку пути
+		for (int i = 0; i < path.Length - 1; i++)
+		{
+			var fromPos = nodes.Find(x => x.ID == path[i]).transform.localPosition;
+			var toPos = nodes.Find(x => x.ID == path[i + 1]).transform.localPosition;
+
+			var line = DrawLine(fromPos, toPos, color, color);
+			finalPathLines.Enqueue(line);
+		}
+	}
+
+	private void ClearFinalPath()
+	{
+		while (finalPathLines.Count > 0)
+			Destroy(finalPathLines.Dequeue().gameObject);
+	}
+
+
+
+	#region Drawing Lines
+	private LineRenderer GetInstantiatedLine()
+	{
+		return Instantiate(lineInfo.LinePrefab, linesParent);
+	}
+	private LineRenderer DrawLine(Vector3 from, Vector3 to, Color startColor, Color endColor)
+	{
+		var line = GetInstantiatedLine();
+		line.startColor = startColor;
+		line.endColor = endColor;
+
+		line.SetPosition(0, from);
+		line.SetPosition(1, to);
+
+		return line;
+	}
+	private LineRenderer DrawLine(Vector3 from, Vector3 to)
+	{
+		var line = GetInstantiatedLine();
+
+		line.SetPosition(0, from);
+		line.SetPosition(1, to);
+
+		return line;
+	}
 	private void DrawLineText(LineRenderer line, Node firstNode, Node secondNode)
 	{
 		// Weight text
@@ -117,34 +171,18 @@ public class Graph : MonoBehaviour
 		lineText.text = firstNode.Connections.First(x => x.node.ID == secondNode.ID).weight.ToString();
 		lineText.enabled = true;
 	}
-
-
-	public void ZoomTexts(float scaleFactor)
-	{
-		foreach (var text in texts)
-		{
-			Vector3 localScale = text.localScale;
-			Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
-
-			text.localScale = newScale;
-		}
-	}
-
-
-	private void DrawPath(int[] path)
-	{
-		// TODO: отрисовка пути
-	}
+	#endregion
 
 
 
 	public void FindBestPath(FindBestPathDelegate algorithm)
 	{
+		ClearFinalPath();
 		var path = algorithm(Matrix, StartNode.ID, EndNode.ID);
 
 		if (ValidateStartEndNodes() && ValidatePath(path))
 		{
-			DrawPath(path);
+			DrawPath(path, Color.yellow);
 
 			// Debug log
 			string res = "";
@@ -156,6 +194,8 @@ public class Graph : MonoBehaviour
 		else
 		{
 			Debug.LogWarning("Ошибка пути.");
+
+			// Debug logWarning
 			string str = "";
 			foreach (var p in path)
 				str += p + " ";
@@ -164,8 +204,6 @@ public class Graph : MonoBehaviour
 
 			return;
 		}
-
-
 
 		Debug.Log("Поиск лучшего маршрута завершен!");
 	}
@@ -178,9 +216,13 @@ public class Graph : MonoBehaviour
 		Debug.Log("Поиск всех маршрутов");
 	}
 
-	public void AlgorithmTeaching(AlgorithmTeaching algorithm)
+	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm)
 	{
 		// TODO: algorithmStep
+		ClearFinalPath();
+		ui.ShowAlgorithmTeachingPanel();
+
+
 	}
 
 	private bool ValidateStartEndNodes()
@@ -241,8 +283,6 @@ public class Graph : MonoBehaviour
 
 	private int[,] GetMatrix()
 	{
-		// TODO: переделать getMatrix?
-
 		// Matrix Init
 		int[,] distancies = new int[nodes.Count, nodes.Count];
 		for (int i = 0; i < nodes.Count; i++)
@@ -260,7 +300,6 @@ public class Graph : MonoBehaviour
 
 		return distancies;
 	}
-
 	private void LogMatrix()
 	{
 		for (int i = 0; i < Matrix.GetLength(0); i++)

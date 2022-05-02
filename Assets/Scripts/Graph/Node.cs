@@ -24,6 +24,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	public Node ConnectedTo { get; private set; }
 
 	// Private variables
+	private GraphZoomer graphMover;
 	private static int objectsCount = 0;
 	private InputMaster input;
 	private Transform parent;
@@ -42,7 +43,8 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 		input = new InputMaster();
 		parent = gameObject.GetComponentInParent<Graph>().transform;
-		canvas = GetComponentInParent<GraphMover>().canvas;
+		graphMover = GetComponentInParent<GraphZoomer>();
+		canvas = graphMover.canvas;
 		canvasRectTransform = canvas.GetComponent<RectTransform>();
 
 		// Init connections
@@ -79,7 +81,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	{
 		Node conNode;
 
-		if (CursorRaycaster.IsCursorOverObjectWithTag(GetRawCursorPos(), "GraphNode", out GameObject obj)
+		if (CursorRaycaster.IsCursorOverObjectWithTag(graphMover.GetRawCursorPos(), "GraphNode", out GameObject obj)
 			&& obj != this.gameObject)
 		{
 			conNode = obj.GetComponent<Node>();
@@ -168,21 +170,11 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	#region Cursor
 	private Vector2 GetCursorPos()
 	{
-		var cursorPos = GetRawCursorPos();
-		cursorPos /= canvas.scaleFactor;
-
-		var rectSize = canvasRectTransform.rect.size;
-		cursorPos -= rectSize / 2;
-
+		var cursorPos = graphMover.GetCursorPos();
 		cursorPos -= (Vector2)parent.localPosition;
 		cursorPos /= parent.localScale;
 
 		return cursorPos;
-	}
-
-	private Vector2 GetRawCursorPos()
-	{
-		return input.UI.Position.ReadValue<Vector2>();
 	}
 	#endregion
 }

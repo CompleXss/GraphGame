@@ -71,6 +71,24 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""T"",
+                    ""type"": ""Button"",
+                    ""id"": ""0b35cd51-65fa-42e4-8c6f-b8b9dd173f4e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Y"",
+                    ""type"": ""Button"",
+                    ""id"": ""66aa622f-e9a4-47d3-8ef2-67ee5d6135c6"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -150,6 +168,28 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                     ""action"": ""RightClick"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ad7f4eaf-56e3-43b5-af91-b6bc33481b12"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""T"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dca820b9-ba75-4a34-baf2-75db4ca12679"",
+                    ""path"": ""<Keyboard>/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Y"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -180,6 +220,8 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
         m_UI_MiddleClick = m_UI.FindAction("MiddleClick", throwIfNotFound: true);
         m_UI_RightClick = m_UI.FindAction("RightClick", throwIfNotFound: true);
+        m_UI_T = m_UI.FindAction("T", throwIfNotFound: true);
+        m_UI_Y = m_UI.FindAction("Y", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -244,6 +286,8 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_ScrollWheel;
     private readonly InputAction m_UI_MiddleClick;
     private readonly InputAction m_UI_RightClick;
+    private readonly InputAction m_UI_T;
+    private readonly InputAction m_UI_Y;
     public struct UIActions
     {
         private @InputMaster m_Wrapper;
@@ -253,6 +297,8 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         public InputAction @ScrollWheel => m_Wrapper.m_UI_ScrollWheel;
         public InputAction @MiddleClick => m_Wrapper.m_UI_MiddleClick;
         public InputAction @RightClick => m_Wrapper.m_UI_RightClick;
+        public InputAction @T => m_Wrapper.m_UI_T;
+        public InputAction @Y => m_Wrapper.m_UI_Y;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -277,6 +323,12 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                 @RightClick.started -= m_Wrapper.m_UIActionsCallbackInterface.OnRightClick;
                 @RightClick.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnRightClick;
                 @RightClick.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnRightClick;
+                @T.started -= m_Wrapper.m_UIActionsCallbackInterface.OnT;
+                @T.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnT;
+                @T.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnT;
+                @Y.started -= m_Wrapper.m_UIActionsCallbackInterface.OnY;
+                @Y.performed -= m_Wrapper.m_UIActionsCallbackInterface.OnY;
+                @Y.canceled -= m_Wrapper.m_UIActionsCallbackInterface.OnY;
             }
             m_Wrapper.m_UIActionsCallbackInterface = instance;
             if (instance != null)
@@ -296,6 +348,12 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
                 @RightClick.started += instance.OnRightClick;
                 @RightClick.performed += instance.OnRightClick;
                 @RightClick.canceled += instance.OnRightClick;
+                @T.started += instance.OnT;
+                @T.performed += instance.OnT;
+                @T.canceled += instance.OnT;
+                @Y.started += instance.OnY;
+                @Y.performed += instance.OnY;
+                @Y.canceled += instance.OnY;
             }
         }
     }
@@ -316,5 +374,7 @@ public partial class @InputMaster : IInputActionCollection2, IDisposable
         void OnScrollWheel(InputAction.CallbackContext context);
         void OnMiddleClick(InputAction.CallbackContext context);
         void OnRightClick(InputAction.CallbackContext context);
+        void OnT(InputAction.CallbackContext context);
+        void OnY(InputAction.CallbackContext context);
     }
 }
