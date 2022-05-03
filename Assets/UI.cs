@@ -48,6 +48,7 @@ public class UI : MonoBehaviour
 	{
 		StopAllCoroutines();
 
+		// Ћева€ панель (верхн€€)
 		upLeftPanel.SetActive(true);
 		var leftRoutine = StartCoroutine(MoveDragZone(upLeftPanelRT, DragZone.ChangeSizeSide.Left_Or_Bottom, lowerLeftPanelRT.sizeDelta - upLeftPanelRT.sizeDelta));
 
@@ -59,6 +60,7 @@ public class UI : MonoBehaviour
 
 
 
+		// ¬ерхн€€ панель
 		upPanel.SetActive(true);
 		//var upRoutine = StartCoroutine(MoveDragZone(upPanelRT, DragZone.ChangeSizeSide.Right_Or_Top, ));
 
@@ -68,6 +70,7 @@ public class UI : MonoBehaviour
 	{
 		StopAllCoroutines();
 
+		// Ћева€ панель (верхн€€)
 		lowerLeftPanel.SetActive(true);
 		var leftRoutine = StartCoroutine(MoveDragZone(upLeftPanelRT, DragZone.ChangeSizeSide.Left_Or_Bottom, lowerLeftPanelRT.sizeDelta - upLeftPanelRT.sizeDelta));
 
@@ -79,6 +82,7 @@ public class UI : MonoBehaviour
 
 
 
+		// ¬ерхн€€ панель
 		StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), () =>
 		{
 			upPanel.SetActive(false);
@@ -111,26 +115,42 @@ public class UI : MonoBehaviour
 		if (moveSpeed == 0f)
 			yield break;
 
-		float prevPosX = stopMovingPosition.x;
-		float prevPosY = stopMovingPosition.y;
+		//Vector2 distPassed = Vector2.zero;
 
-		while (true) // while is not stopped from outside
+		Vector2 prevPos = stopMovingPosition;
+
+		//  1 if side == Right_Or_Top
+		// -1 if side == Left_Or_Bottom
+		float moveDirection = Convert.ToSingle(side == DragZone.ChangeSizeSide.Right_Or_Top) * 2 - 1;
+
+
+
+		while (true /*stopMovingPosition.magnitude > distPassed.magnitude*/) // while is not stopped from outside
 		{
+			Vector2 diff = panel.anchoredPosition - prevPos;
+
+
+
+			// TODO: условие не робит при движении влево
 			if (panel.anchoredPosition.x > stopMovingPosition.x)
 			{
-				Debug.Log("x");
-				dragZone.ChangeSize(DragZone.SizeAxis.X, side, prevPosX - panel.anchoredPosition.x);
-				prevPosX = panel.anchoredPosition.x;
+				Debug.Log("x: " + panel.name);
+				dragZone.ChangeSize(DragZone.SizeAxis.X, side, diff.x * moveDirection);
+
+				//distPassed.x += panel.anchoredPosition.x - prevPosX;
+				prevPos.x = panel.anchoredPosition.x;
 			}
 
 			if (panel.anchoredPosition.y > stopMovingPosition.y)
 			{
-				Debug.Log("y");
-				dragZone.ChangeSize(DragZone.SizeAxis.Y, side, prevPosY - panel.anchoredPosition.y);
-				prevPosY = panel.anchoredPosition.y;
+				Debug.Log("y: " + panel.name);
+				dragZone.ChangeSize(DragZone.SizeAxis.Y, side, diff.y * moveDirection);
+
+				//distPassed.y += panel.anchoredPosition.y - prevPosY;
+				prevPos.y = panel.anchoredPosition.y;
 			}
 
-			Debug.Log("movingDragZone");
+			Debug.Log("MoveDragZone");
 			yield return new WaitForEndOfFrame();
 		}
 	}

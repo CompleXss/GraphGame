@@ -48,11 +48,11 @@ public class DragZone : MonoBehaviour
 	private void SetNewSize(Vector2 newSize)
 	{
 		var oldParent = graph.parent;
-		graph.parent = emptyObj.transform;
+		graph.SetParent(emptyObj.transform);
 
 		rt.sizeDelta = newSize;
 
-		graph.parent = oldParent;
+		graph.SetParent(oldParent);
 	}
 	private void ChangeSize(Vector2 offset)
 	{
@@ -64,18 +64,17 @@ public class DragZone : MonoBehaviour
 	private void SetNewPosAndSize(Vector2 newPos, Vector2 newSize)
 	{
 		var oldParent = graph.parent;
-		graph.parent = emptyObj.transform;
+		graph.SetParent(emptyObj.transform);
 
 		rt.anchoredPosition = newPos;
 		rt.sizeDelta = newSize;
 
-		graph.parent = oldParent;
+		graph.SetParent(oldParent);
 	}
 	private void ChangePosAndSize(Vector2 posOffset, Vector2 sizeOffset)
 	{
 		SetNewPosAndSize(rt.anchoredPosition + posOffset, rt.sizeDelta + sizeOffset);
 	}
-
 
 
 
