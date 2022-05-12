@@ -417,7 +417,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 43.999992, y: 0}
+  m_AnchoredPosition: {x: 44, y: 0}
   m_SizeDelta: {x: 650.0001, y: -0.00024414062}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &276216669
@@ -492,6 +492,11 @@ MonoBehaviour:
   endNode: {fileID: 1242265028}
   lineInfo: {fileID: 11400000, guid: dce229607423d8542ac06a9552635761, type: 2}
   linesParent: {fileID: 2071477717}
+  Start_NodeColor: {r: 0, g: 1, b: 0, a: 1}
+  End_NodeColor: {r: 1, g: 0, b: 0, a: 1}
+  ConnectionStart_NodeColor: {r: 0, g: 1, b: 1, a: 1}
+  ConnectionEnd_NodeColor: {r: 1, g: 0, b: 1, a: 1}
+  HighlightMiddle_NodeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &409710691
 GameObject:
   m_ObjectHideFlags: 0

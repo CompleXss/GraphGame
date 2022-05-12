@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.Emit;
 
 using UnityEngine;
 
-public delegate int[] FindBestPathDelegate(int[,] graph, int startNode, int endNode);
-public delegate int[][] FindAllPathsDelegate(int[,] graph, int startNode, int endNode);
-public delegate int[] AlgorithmTeaching(int[,] graph, int startNode, int endNode, ref object dataToSave, out string message, out int nodeToHighlight);
+public delegate int[] FindBestPathDelegate(int[,] graph, int startNodeID, int endNodeID);
+public delegate int[][] FindAllPathsDelegate(int[,] graph, int startNodeID, int endNodeID);
+public delegate int[] AlgorithmTeaching(int[,] graph, int startNodeID, int endNodeID, ref object dataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight);
 
 
 

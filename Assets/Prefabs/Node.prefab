@@ -165,6 +165,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   connections: []
   chooseLinePrefab: {fileID: 3999817854673759287, guid: bae91e02fc12b14469c128686ed15dd1, type: 3}
+  circle: {fileID: 3680158396521909454}
+  ring: {fileID: 3680158396790289259}
 --- !u!1 &3680158396790289257
 GameObject:
   m_ObjectHideFlags: 0

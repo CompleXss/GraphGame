@@ -20,10 +20,24 @@ public class Graph : MonoBehaviour
 	[SerializeField] private LineInfo lineInfo;
 	[SerializeField] private Transform linesParent;
 
+	[Header("Подсветка нод")]
+	[SerializeField] private Color Start_NodeColor = Color.green;
+	[SerializeField] private Color End_NodeColor = Color.red;
+	[SerializeField] private Color ConnectionStart_NodeColor = Color.cyan;
+	[SerializeField] private Color ConnectionEnd_NodeColor = Color.magenta;
+	[SerializeField] private Color HighlightMiddle_NodeColor = Color.yellow;
+
 	private List<Node> nodes;
 	private List<Transform> texts;
 	private Queue<LineRenderer> finalPathLines;
 
+	private Coroutine algorithmTeachingRoutine;
+	private List<ValueTuple<Node, Action<Node>>> subscribedNodes = new List<ValueTuple<Node, Action<Node>>>();
+
+	private Node highlightedMiddleNode;
+	private Node highlightedConnectionStartNode;
+	private Node highlightedConnectionEndNode;
+	private bool teachingCanGo = true;
 
 
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
@@ -177,9 +191,17 @@ public class Graph : MonoBehaviour
 
 	public void FindBestPath(FindBestPathDelegate algorithm)
 	{
+		if (algorithm == null)
+			return;
+
 		ClearFinalPath();
 		var path = algorithm(Matrix, StartNode.ID, EndNode.ID);
 
+		if (ValidateAndPrintPath(path))
+			Debug.Log("Поиск лучшего маршрута завершен!");
+	}
+	private bool ValidateAndPrintPath(int[] path)
+	{
 		if (ValidateStartEndNodes() && ValidatePath(path))
 		{
 			DrawPath(path, Color.yellow);
@@ -190,6 +212,7 @@ public class Graph : MonoBehaviour
 				res += p + " ";
 
 			Debug.Log(res);
+			return true;
 		}
 		else
 		{
@@ -201,15 +224,15 @@ public class Graph : MonoBehaviour
 				str += p + " ";
 
 			Debug.LogWarning(str);
-
-			return;
+			return false;
 		}
-
-		Debug.Log("Поиск лучшего маршрута завершен!");
 	}
 
 	public void FindAllPaths(FindAllPathsDelegate algorithm)
 	{
+		if (algorithm == null)
+			return;
+
 		var paths = algorithm(Matrix, 0, 0);
 
 		// TODO: Поиск всех маршрутов
@@ -218,26 +241,199 @@ public class Graph : MonoBehaviour
 
 	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm)
 	{
-		// TODO: algorithmStep
+		if (algorithm == null)
+			return;
+
 		ClearFinalPath();
 		ui.ShowAlgorithmTeachingPanel();
 
-
+		algorithmTeachingRoutine = StartCoroutine(AlgorithmTeaching(algorithm));
 	}
 
-	private bool ValidateStartEndNodes()
+
+
+	/// <summary>
+	/// Останавливает процесс "обучения", и если <paramref name="findBestPathAlgorithm"/> не null, показывает результат работы алгоритма.
+	/// </summary>
+	public void StopAlgorithmTeaching(FindBestPathDelegate findBestPathAlgorithm)
+	{
+		StopCoroutine(algorithmTeachingRoutine);
+
+		foreach (var tuple in subscribedNodes)
+		{
+			var node = tuple.Item1;
+			var method = tuple.Item2;
+
+			node.OnConnectedWith -= method;
+		}
+
+		FinaleAlgorithmTeachng(findBestPathAlgorithm);
+	}
+
+	private void FinaleAlgorithmTeachng(FindBestPathDelegate findBestPathAlgorithm)
+	{
+		if (findBestPathAlgorithm != null)
+			FindBestPath(findBestPathAlgorithm);
+
+		ui.HideAlgorithmTeachingPanel();
+	}
+
+
+
+	private IEnumerator AlgorithmTeaching(AlgorithmTeaching algorithm)
+	{
+		object dataToSave = null;
+		string message = null;
+
+		var connectionsQueue = new Queue<ValueTuple<int, int>>();
+
+		while (true)
+		{
+			if (teachingCanGo)
+			{
+				// TODO: завершает работу после проверки 1 ноды
+				var path = algorithm((int[,])Matrix.Clone(), StartNode.ID, EndNode.ID, ref dataToSave, out message, out bool isAlgorithmFinished, out int nodeToHighlight);
+
+				if (isAlgorithmFinished)
+				{
+					ValidateAndPrintPath(path);
+					ui.HideAlgorithmTeachingPanel();
+					break;
+				}
+
+				HighlightNodeAs_Middle(nodeToHighlight);
+				for (int nodeID = 1; nodeID < path.Length; nodeID++)
+				{
+					connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
+				}
+				Debug.Log(message);
+
+
+
+				foreach (var item in path)
+					Debug.Log(item);
+
+
+
+				MakePlayerConnectNodes(connectionsQueue);
+			}
+
+			yield return new WaitForEndOfFrame();
+		}
+
+
+
+		// Завершение работы
+		RemoveNodeHighlighting(highlightedConnectionStartNode);
+		RemoveNodeHighlighting(highlightedConnectionEndNode);
+		RemoveNodeHighlighting(highlightedMiddleNode);
+
+		if (!string.IsNullOrWhiteSpace(message))
+			Debug.Log(message); // TODO: вывод на label
+		else
+			Debug.Log("else: Работа алгоритма завершена."); // TODO: вывод на label
+	}
+
+
+
+	private void MakePlayerConnectNodes(Queue<ValueTuple<int, int>> connectionsQueue)
+	{
+		if (connectionsQueue.Count < 1)
+			return;
+
+		teachingCanGo = false;
+
+		var twoNodes = connectionsQueue.Dequeue();
+		int fromNodeID = twoNodes.Item1;
+		int toNodeID = twoNodes.Item2;
+
+		Node fromNode = nodes.Find(x => x.ID == fromNodeID);
+		Node toNode = nodes.Find(x => x.ID == toNodeID);
+
+		if (!ValidateStartEndNodes("Алгоритм обучения"))
+		{
+			// TODO: дебажить в лейбел?
+			teachingCanGo = true;
+			return;
+		}
+
+		HighlightNodeAs_ConnectionStart(fromNode);
+		HighlightNodeAs_ConnectionEnd(toNode);
+
+
+
+		fromNode.OnConnectedWith += CheckIfNodeIsRight;
+		subscribedNodes.Add((fromNode, CheckIfNodeIsRight));
+
+		void CheckIfNodeIsRight(Node conNode)
+		{
+			if (conNode != null && conNode.ID == toNodeID)
+			{
+				teachingCanGo = true;
+				fromNode.OnConnectedWith -= CheckIfNodeIsRight;
+				subscribedNodes.Remove((fromNode, CheckIfNodeIsRight));
+
+				// TODO: clear connection made by player
+
+				MakePlayerConnectNodes(connectionsQueue);
+			}
+		}
+	}
+
+
+
+	#region NodeHighlighting
+	private void HighlightNodeAs(Node nodeToHighlight, ref Node asWhatNode, Color color)
+	{
+		RemoveNodeHighlighting(asWhatNode);
+
+		if (nodeToHighlight != null)
+		{
+			nodeToHighlight.Highlight(color);
+			asWhatNode = nodeToHighlight;
+		}
+	}
+
+	private void HighlightNodeAs_ConnectionStart(Node nodeToHighlight)
+	{
+		HighlightNodeAs(nodeToHighlight, ref highlightedConnectionStartNode, ConnectionStart_NodeColor);
+	}
+	private void HighlightNodeAs_ConnectionEnd(Node nodeToHighlight)
+	{
+		HighlightNodeAs(nodeToHighlight, ref highlightedConnectionEndNode, ConnectionEnd_NodeColor);
+	}
+	private void HighlightNodeAs_Middle(Node nodeToHighlight)
+	{
+		HighlightNodeAs(nodeToHighlight, ref highlightedMiddleNode, HighlightMiddle_NodeColor);
+	}
+	private void HighlightNodeAs_Middle(int nodeToHighlightID)
+	{
+		if (nodeToHighlightID >= 0)
+			HighlightNodeAs_Middle(nodes.Find(x => x.ID == nodeToHighlightID));
+	}
+
+	private void RemoveNodeHighlighting(Node nodeToRemoveHighlightingFrom)
+	{
+		if (nodeToRemoveHighlightingFrom != null)
+			nodeToRemoveHighlightingFrom.RemoveHighlighting();
+	}
+	#endregion
+
+
+
+	private bool ValidateStartEndNodes(string senderName = "")
 	{
 		bool validated = true;
 
 		if (StartNode == null)
 		{
-			Debug.LogWarning("StartNode is null.");
+			Debug.LogWarning(senderName + " | StartNode is null.");
 			validated = false;
 		}
 
 		if (EndNode == null)
 		{
-			Debug.LogWarning("EndNode is null.");
+			Debug.LogWarning(senderName + " | EndNode is null.");
 			validated = false;
 		}
 
@@ -308,4 +504,21 @@ public class Graph : MonoBehaviour
 				Debug.Log($"{i}_{j}: {Matrix[i, j]}");
 			}
 	}
+
+
+
+
+
+
+	//private struct TwoNodes
+	//{
+	//	public Node node1;
+	//	public Node node2;
+
+	//	public TwoNodes(Node node1, Node node2)
+	//	{
+	//		this.node1 = node1;
+	//		this.node2 = node2;
+	//	}
+	//}
 }

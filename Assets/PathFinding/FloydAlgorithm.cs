@@ -46,16 +46,20 @@ class FloydAlgorithm
 
 
 	// TODO: шаг алгоритма
-	int[] GetAlgorithmStep(int[,] inputGraph, int fromNode, int toNode, ref object dataToSave, out string message, out int nodeToHighlight)
+	int[] GetAlgorithmStep(int[,] inputGraph, int fromNode, int toNode, ref object dataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight)
 	{
 		// Init
-		int nodeCount = inputGraph.GetLength(0);
+		int nodeCount;
 		int[,] graph, p;
 		int k, i, j;
+
+		isAlgorithmFinished = false;
 
 		if (dataToSave is DataToSave data)
 		{
 			graph = data.graph;
+			nodeCount = graph.GetLength(0);
+
 			p = data.p;
 
 			k = data.k;
@@ -67,41 +71,38 @@ class FloydAlgorithm
 			data = new DataToSave();
 			k = i = j = 0;
 
+			nodeCount = inputGraph.GetLength(0);
 			p = new int[nodeCount, nodeCount];
 
-			graph = new int[nodeCount, nodeCount];
-			for (int a = 0; a < nodeCount; a++)
-				for (int b = 0; b < nodeCount; b++)
-					graph[a, b] = inputGraph[a, b];
+			graph = (int[,])inputGraph.Clone();
 		}
 
 		// Algorithm
 		for (; k < nodeCount; k++)
 			for (; i < nodeCount; i++)
-				for (; j < nodeCount;)
-					if (graph[i, k] != int.MaxValue && graph[k, j] != int.MaxValue
-						&& (graph[i, k] + graph[k, j]) < graph[i, j])
-					{
-						graph[i, j] = graph[i, k] + graph[k, j];
-						p[i, j] = k;
+				for (; j < nodeCount; j++)
+					if (graph[i, k] != int.MaxValue && graph[k, j] != int.MaxValue)
+						if ((graph[i, k] + graph[k, j]) < graph[i, j])
+						{
+							graph[i, j] = graph[i, k] + graph[k, j];
+							p[i, j] = k;
 
-						message = "Проведи линию из точки А в Б через выделенную точку.";
-						nodeToHighlight = k;
+							message = "Проведи линию из точки А в Б через выделенную точку.";
+							nodeToHighlight = k;
 
-						// save data
-						data.i = i;
-						data.j = j;
-						data.k = k;
-						dataToSave = data;
+							SaveData(ref dataToSave);
 
-						return new int[3] { i, k, j++ };
-					}
-					else
-					{
-						message = "Проведи линию из точки А в Б.";
-						nodeToHighlight = -1;
-						return new int[2] { i, j++ };
-					}
+							return new int[3] { i, k, j };
+						}
+						else if (i != j)
+						{
+							message = "Проведи линию из точки А в Б.";
+							nodeToHighlight = -1;
+
+							SaveData(ref dataToSave);
+
+							return new int[2] { i, j };
+						}
 
 		var path = new List<int>();
 		path.Add(fromNode);
@@ -111,10 +112,25 @@ class FloydAlgorithm
 
 
 		message = "Работа алгоритма завершена.";
+		isAlgorithmFinished = true;
 		nodeToHighlight = -1;
 
 		return path.ToArray();
+
+
+
+		void SaveData(ref object dataToSave)
+		{
+			data.i = i;
+			data.j = j + 1;
+			data.k = k;
+
+			data.p = p;
+			data.graph = graph;
+			dataToSave = data;
+		}
 	}
+
 
 
 	class DataToSave

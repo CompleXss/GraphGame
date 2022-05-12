@@ -21,12 +21,13 @@ public class UI : MonoBehaviour
 	private Coroutine upLeftPanelRoutine;
 	private Coroutine upPanelRoutine;
 
-
 	private bool upLeftPanelShown;
 	private bool upPanelShown;
 
 	private bool upLeftPanelDragZoneIsSmall;
 	private bool upPanelDragZoneIsSmall;
+
+
 
 	void Awake()
 	{

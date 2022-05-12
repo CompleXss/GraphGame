@@ -14,6 +14,9 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 {
 	[SerializeField] private List<Connection> connections;
 	[SerializeField] private LineRenderer chooseLinePrefab;
+
+	[SerializeField] private SpriteRenderer circle;
+	[SerializeField] private SpriteRenderer ring;
 	//[SerializeField] private LineInfo chooseLineInfo;
 
 
@@ -22,6 +25,9 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	public int ID { get; private set; }
 	public BindingList<Connection> Connections { get; private set; }
 	public Node ConnectedTo { get; private set; }
+	public event Action<Node> OnConnectedWith;
+
+
 
 	// Private variables
 	private GraphZoomer graphMover;
@@ -32,8 +38,8 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	//private TextMeshProUGUI lineText;
 	private Canvas canvas;
 	private RectTransform canvasRectTransform;
+	private bool isHighlighted;
 	private bool isHolding;
-
 
 
 	void Awake()
@@ -135,7 +141,31 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		StopDrawingLine(out Node connectedTo);
 		ConnectedTo = connectedTo;
 
+		OnConnectedWith?.Invoke(connectedTo);
 		//isHolding = false;
+	}
+
+
+
+	public void Highlight(Color color)
+	{
+		if (isHighlighted)
+			return;
+
+		ring.transform.localScale *= 1.1f;
+		circle.color = color;
+
+		isHighlighted = true;
+	}
+	public void RemoveHighlighting()
+	{
+		if (!isHighlighted)
+			return;
+
+		ring.transform.localScale /= 1.1f;
+		circle.color = Color.white;
+
+		isHighlighted = false;
 	}
 
 
@@ -159,11 +189,6 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 
 	// Gizmos
-	void OnDrawGizmosSelected()
-	{
-		foreach (var con in connections)
-			Gizmos.DrawLine(transform.position, con.node.transform.position);
-	}
 
 
 
@@ -177,4 +202,12 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		return cursorPos;
 	}
 	#endregion
+
+
+
+	void OnDrawGizmosSelected()
+	{
+		foreach (var con in connections)
+			Gizmos.DrawLine(transform.position, con.node.transform.position);
+	}
 }
