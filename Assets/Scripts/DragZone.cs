@@ -18,6 +18,7 @@ public class DragZone : MonoBehaviour
 	void OnEnable()
 	{
 		emptyObj = new GameObject("EmptyObject");
+		emptyObj.transform.SetParent(transform.parent);
 	}
 	void OnDisable()
 	{
@@ -26,18 +27,18 @@ public class DragZone : MonoBehaviour
 
 
 
-	public void ChangeSize(SizeAxis axis, ChangeSizeSide side, float offset)
+	public void ChangeSize(ChangeSizeSide side, float offset)
 	{
 		if (offset == 0f)
 			return;
 
+		bool axis_X = (int)side % 2 == 1;
+
 		var vec = new Vector2(
-			Convert.ToSingle(axis == SizeAxis.X) * offset,
-			Convert.ToSingle(axis == SizeAxis.Y) * offset);
+			Convert.ToSingle(axis_X) * offset,
+			Convert.ToSingle(!axis_X) * offset);
 
-
-
-		if (side == ChangeSizeSide.Left_Or_Bottom)
+		if (side == ChangeSizeSide.Left || side == ChangeSizeSide.Bottom)
 			ChangePosAndSize(-vec, vec);
 		else
 			ChangeSize(vec);
@@ -78,13 +79,9 @@ public class DragZone : MonoBehaviour
 
 
 
-	public enum SizeAxis
-	{
-		X, Y
-	}
 	public enum ChangeSizeSide
 	{
-		Left_Or_Bottom,
-		Right_Or_Top
+		// Порядок важен!
+		Bottom, Left, Top, Right
 	}
 }
