@@ -40,6 +40,7 @@ public class Graph : MonoBehaviour
 	private bool teachingCanGo = true;
 
 
+
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
 	public Node StartNode
@@ -301,7 +302,17 @@ public class Graph : MonoBehaviour
 					break;
 				}
 
+				if (path.Length < 2)
+				{
+					Debug.LogWarning("В процессе обучения получен путь длиной меньше 2."); // TODO: label debug
+					yield return new WaitForEndOfFrame();
+				}
+
+				HighlightNodeAs_ConnectionStart(path[0]);
+				HighlightNodeAs_ConnectionEnd(path[path.Length - 1]);
+
 				HighlightNodeAs_Middle(nodeToHighlight);
+
 				for (int nodeID = 1; nodeID < path.Length; nodeID++)
 				{
 					connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
@@ -357,11 +368,6 @@ public class Graph : MonoBehaviour
 			return;
 		}
 
-		HighlightNodeAs_ConnectionStart(fromNode);
-		HighlightNodeAs_ConnectionEnd(toNode);
-
-
-
 		fromNode.OnConnectedWith += CheckIfNodeIsRight;
 		subscribedNodes.Add((fromNode, CheckIfNodeIsRight));
 
@@ -398,16 +404,28 @@ public class Graph : MonoBehaviour
 	{
 		HighlightNodeAs(nodeToHighlight, ref highlightedConnectionStartNode, ConnectionStart_NodeColor);
 	}
+	private void HighlightNodeAs_ConnectionStart(int nodeToHighlightID)
+	{
+		HighlightNodeAs_ConnectionStart(nodes.Find(x => x.ID == nodeToHighlightID));
+	}
+
 	private void HighlightNodeAs_ConnectionEnd(Node nodeToHighlight)
 	{
 		HighlightNodeAs(nodeToHighlight, ref highlightedConnectionEndNode, ConnectionEnd_NodeColor);
 	}
+	private void HighlightNodeAs_ConnectionEnd(int nodeToHighlightID)
+	{
+		HighlightNodeAs_ConnectionEnd(nodes.Find(x => x.ID == nodeToHighlightID));
+	}
+
 	private void HighlightNodeAs_Middle(Node nodeToHighlight)
 	{
 		HighlightNodeAs(nodeToHighlight, ref highlightedMiddleNode, HighlightMiddle_NodeColor);
 	}
 	private void HighlightNodeAs_Middle(int nodeToHighlightID)
 	{
+		RemoveNodeHighlighting(highlightedMiddleNode);
+
 		if (nodeToHighlightID >= 0)
 			HighlightNodeAs_Middle(nodes.Find(x => x.ID == nodeToHighlightID));
 	}
@@ -504,21 +522,4 @@ public class Graph : MonoBehaviour
 				Debug.Log($"{i}_{j}: {Matrix[i, j]}");
 			}
 	}
-
-
-
-
-
-
-	//private struct TwoNodes
-	//{
-	//	public Node node1;
-	//	public Node node2;
-
-	//	public TwoNodes(Node node1, Node node2)
-	//	{
-	//		this.node1 = node1;
-	//		this.node2 = node2;
-	//	}
-	//}
 }

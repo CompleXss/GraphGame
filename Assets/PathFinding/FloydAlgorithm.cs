@@ -11,12 +11,9 @@ class FloydAlgorithm
 	{
 		// Init
 		int nodeCount = inputGraph.GetLength(0);
-		var p = new int[nodeCount, nodeCount];
+		int[,] p = new int[nodeCount, nodeCount];
 
-		var graph = new int[nodeCount, nodeCount];
-		for (int i = 0; i < nodeCount; i++)
-			for (int j = 0; j < nodeCount; j++)
-				graph[i, j] = inputGraph[i, j];
+		int[,] graph = (int[,])inputGraph.Clone();
 
 		// Algorithm
 		for (int k = 0; k < nodeCount; k++)
@@ -78,8 +75,8 @@ class FloydAlgorithm
 		}
 
 		// Algorithm
-		for (; k < nodeCount; k++)
-			for (; i < nodeCount; i++)
+		for (; k < nodeCount; k++, i = 0)
+			for (; i < nodeCount; i++, j = 0)
 				for (; j < nodeCount; j++)
 					if (graph[i, k] != int.MaxValue && graph[k, j] != int.MaxValue)
 						if ((graph[i, k] + graph[k, j]) < graph[i, j])
