@@ -12,12 +12,12 @@ using UnityEngine.InputSystem;
 
 public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
+	[SerializeField] private int id;
 	[SerializeField] private List<Connection> connections;
 	[SerializeField] private LineRenderer chooseLinePrefab;
 
 	[SerializeField] private SpriteRenderer circle;
 	[SerializeField] private SpriteRenderer ring;
-	//[SerializeField] private LineInfo chooseLineInfo;
 
 
 
@@ -31,28 +31,23 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 	// Private variables
 	private GraphZoomer graphMover;
-	private static int objectsCount = 0;
+	//private static int objectsCount = 0;
 	private InputMaster input;
 	private Transform parent;
 	private LineRenderer line;
-	//private TextMeshProUGUI lineText;
-	private Canvas canvas;
-	private RectTransform canvasRectTransform;
 	private bool isHighlighted;
-	private bool isHolding;
 
 
 
 	void Awake()
 	{
-		ID = objectsCount++;
+		//ID = objectsCount++;
+		ID = id;
 		gameObject.name = "Node " + ID;
 
 		input = new InputMaster();
 		parent = gameObject.GetComponentInParent<Graph>().transform;
 		graphMover = GetComponentInParent<GraphZoomer>();
-		canvas = graphMover.canvas;
-		canvasRectTransform = canvas.GetComponent<RectTransform>();
 
 		// Init connections
 		connections.RemoveAll(x => x.node == this);
@@ -112,17 +107,6 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	}
 	#endregion
 
-	private void Hold()
-	{
-		// If is still holding
-		if (isHolding)
-		{
-			Debug.Log("Hold is Done");
-		}
-
-		isHolding = false;
-	}
-
 	public void ClearManualConnection()
 	{
 		if (line != null)
@@ -135,9 +119,6 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	{
 		StartDrawingLine();
 		ConnectedTo = null;
-
-		//isHolding = true;
-		//Invoke(nameof(Hold), 1.5f);
 	}
 
 	public void OnDrag(PointerEventData eventData)
@@ -151,9 +132,19 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		ConnectedTo = connectedTo;
 
 		OnConnectedWith?.Invoke(connectedTo);
-		//isHolding = false;
 	}
 
+
+
+
+	public void MarkAs_StartNode(Color color)
+	{
+		ring.color = color;
+	}
+	public void MarkAs_EndNode(Color color)
+	{
+		ring.color = color;
+	}
 
 
 	public void Highlight(Color color)

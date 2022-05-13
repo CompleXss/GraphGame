@@ -14,11 +14,9 @@ public class Graph : MonoBehaviour
 	[SerializeField] private UI ui;
 	[SerializeField] private OutputGraph outputGraph;
 
-	[Space]
+	[Header("Ноды")]
 	[SerializeField] private Node startNode;
 	[SerializeField] private Node endNode;
-
-	[Header("Подсветка нод")]
 	[SerializeField] private NodeColors nodeColors;
 
 	[HideInInspector] public LineDrawer lineDrawer;
@@ -85,6 +83,9 @@ public class Graph : MonoBehaviour
 
 					lineDrawer.DrawLineWithText(firstNode, secondNode);
 				}
+
+		StartNode.MarkAs_StartNode(nodeColors.Start);
+		EndNode.MarkAs_EndNode(nodeColors.End);
 	}
 
 

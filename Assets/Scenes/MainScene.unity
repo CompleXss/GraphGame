@@ -1277,6 +1277,8 @@ MonoBehaviour:
   startNode: {fileID: 1488851512}
   endNode: {fileID: 1242265028}
   nodeColors: {fileID: 11400000, guid: 7d9cd6da27afc3946a6909b7e62f6008, type: 2}
+  idPrefab: {fileID: 0}
+  placeForIDs: {fileID: 0}
   lineDrawer: {fileID: 0}
 --- !u!114 &276216673
 MonoBehaviour:
@@ -2552,7 +2554,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3680158396750061168, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_Name
-      value: Node (5)
+      value: Node (4)
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_Pivot.x
@@ -2637,6 +2639,10 @@ PrefabInstance:
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
+      propertyPath: id
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: connections.Array.size
@@ -4212,7 +4218,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3680158396750061168, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_Name
-      value: Node (6)
+      value: Node (5)
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_Pivot.x
@@ -4297,6 +4303,10 @@ PrefabInstance:
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
+      propertyPath: id
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
@@ -5335,7 +5345,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3680158396750061168, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_Name
-      value: Node (4)
+      value: Node (3)
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_Pivot.x
@@ -5420,6 +5430,10 @@ PrefabInstance:
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
+      propertyPath: id
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: connections.Array.size
@@ -5620,6 +5634,10 @@ PrefabInstance:
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
+      propertyPath: id
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: connections.Array.size
@@ -6735,6 +6753,10 @@ PrefabInstance:
     - target: {fileID: 3680158396750061169, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
+      propertyPath: id
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3680158396750061180, guid: a0efd90adfebe5e42ad7190fe5061a74, type: 3}
       propertyPath: connections.Array.size

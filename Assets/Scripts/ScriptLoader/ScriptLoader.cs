@@ -55,10 +55,12 @@ public class ScriptLoader
 			if ((!t.IsClass || t.IsAbstract) && !t.IsValueType)
 				continue;
 
-			string[] logs = new string[4];
+			string[] logs = new string[3];
+
+			bool nameIsNull = false;
 
 			var name = GetPropertyValueOrNull(assembly, t, "Name", out logs[0]);
-			if (string.IsNullOrWhiteSpace(name))
+			if (nameIsNull = string.IsNullOrWhiteSpace(name))
 				name = t.Name;
 
 			var findBestPathMethod = GetMethodOrNull<FindBestPathDelegate>(assembly, t, "FindBestPath", out logs[1]);
@@ -67,7 +69,7 @@ public class ScriptLoader
 
 
 			// Если в типе нет ни подходящих свойств, ни подходящих методов, ничего не выводить в логи
-			if (!logs.ToList().TrueForAll(x => x == null))
+			if (nameIsNull && findBestPathMethod == null && algorithmTeaching == null)
 			{
 				foreach (var log in logs)
 					if (!string.IsNullOrWhiteSpace(log))
