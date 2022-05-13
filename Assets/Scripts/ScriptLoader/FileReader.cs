@@ -25,10 +25,6 @@ public class FileReader
 		}
 
 		return files.ToArray();
-
-
-
-		//return new string[1] { ReadFile("") };
 	}
 
 
@@ -38,46 +34,5 @@ public class FileReader
 	{
 		using (var reader = new StreamReader(fileName, detectEncodingFromByteOrderMarks: true))
 			return File.ReadAllText(fileName, reader.CurrentEncoding);
-
-
-
-		// TODO: убрать заглушку из чтения файла
-
-		/*
-
-		return @"
-				using System;
-
-				class FirstClass
-				{
-					string Name => ""Имя первого класса"";
-
-					int a = 5;
-
-					int[] FindBestPath(int[,] graph, int s, int h)
-					{
-						return new int[1] { a };
-					}
-				}
-
-				class SecondClass
-				{
-					string Name { get; } = ""Имя второго класса"";
-
-					int[] FindBestPath(int[,] graph, int a, int b)
-					{
-						return new int[1] { 10 };
-					}
-				}
-
-				struct ThirdStruct
-				{
-					int[] FindBestPath(int[,] graph, int a, int b)
-					{
-						return new int[1] { 30 };
-					}
-				}";
-
-		*/
 	}
 }

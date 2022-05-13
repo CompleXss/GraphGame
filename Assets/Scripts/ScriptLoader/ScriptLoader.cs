@@ -12,8 +12,7 @@ using Microsoft.CodeAnalysis.Emit;
 using UnityEngine;
 
 public delegate int[] FindBestPathDelegate(int[,] graph, int startNodeID, int endNodeID);
-public delegate int[][] FindAllPathsDelegate(int[,] graph, int startNodeID, int endNodeID);
-public delegate int[] AlgorithmTeaching(int[,] graph, int startNodeID, int endNodeID, ref object dataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight);
+public delegate int[] AlgorithmTeaching(int[,] inputGraph, int startNodeID, int endNodeID, out int[,] graphToShow, ref object customDataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight);
 
 
 
@@ -56,30 +55,41 @@ public class ScriptLoader
 			if ((!t.IsClass || t.IsAbstract) && !t.IsValueType)
 				continue;
 
-			var name = GetNamePropertyValueOrNull(assembly, t, "Name");
+			string[] logs = new string[4];
+
+			var name = GetPropertyValueOrNull(assembly, t, "Name", out logs[0]);
 			if (string.IsNullOrWhiteSpace(name))
 				name = t.Name;
 
-			var findBestPathMethod = GetMethodOrNull<FindBestPathDelegate>(assembly, t, "FindBestPath");
-			var findAllPathsMethod = GetMethodOrNull<FindAllPathsDelegate>(assembly, t, "FindAllPaths");
-			var algorithmTeaching = GetMethodOrNull<AlgorithmTeaching>(assembly, t, "GetAlgorithmStep");
+			var findBestPathMethod = GetMethodOrNull<FindBestPathDelegate>(assembly, t, "FindBestPath", out logs[1]);
+			var algorithmTeaching = GetMethodOrNull<AlgorithmTeaching>(assembly, t, "GetAlgorithmStep", out logs[2]);
 
-			algorithms.Add(new PathfindingAlgorithm(name, findBestPathMethod, findAllPathsMethod, algorithmTeaching));
+
+
+			// Если в типе нет ни подходящих свойств, ни подходящих методов, ничего не выводить в логи
+			if (!logs.ToList().TrueForAll(x => x == null))
+			{
+				foreach (var log in logs)
+					if (!string.IsNullOrWhiteSpace(log))
+						ScreenDebug.Log(log);
+			}
+
+			algorithms.Add(new PathfindingAlgorithm(name, findBestPathMethod, algorithmTeaching));
 		}
 
 		return algorithms.ToArray();
 	}
 
 	/// <summary> Ищет в сборке string свойство с данным именем. Если такого свойства нет, возвращает null. </summary>
-	private string GetNamePropertyValueOrNull(Assembly assembly, System.Reflection.TypeInfo t, string propName)
+	private string GetPropertyValueOrNull(Assembly assembly, System.Reflection.TypeInfo t, string propName, out string logmessage)
 	{
+		logmessage = null;
+
 		if (!t.DeclaredProperties.Any(x => x.Name == propName
 										 && x.CanRead
 										 && x.PropertyType == typeof(string)))
 		{
-			// TODO: логи, если нет нужного свойства
-			Debug.LogWarning($"В классе \"{t.FullName}\" нет свойства string {propName} с get-аксессором.");
-			//Debug.LogWarning($"There is no string {propName} property with get-accessor in class \"{t.FullName}\".");
+			logmessage = $"В классе \"{t.FullName}\" нет свойства get string {propName}";
 			return null;
 		}
 
@@ -98,20 +108,19 @@ public class ScriptLoader
 		}
 		catch (Exception e)
 		{
-			// TODO: логи при неправильной загрузке (?)
-			Debug.LogWarning($"Неправильная загрузка свойства с именем | {t.FullName}: {e.Message}");
+			ScreenDebug.LogWarning($"Неправильная загрузка свойства с именем | {t.FullName}: {e.Message}");
 			return null;
 		}
 	}
 
 	/// <summary> Ищет в сборке метод с данным именем, соответствующий данному делегату. Если такого метода нет, возвращает null. </summary>
-	private T GetMethodOrNull<T>(Assembly assembly, System.Reflection.TypeInfo t, string methodName) where T : Delegate
+	private T GetMethodOrNull<T>(Assembly assembly, System.Reflection.TypeInfo t, string methodName, out string logMessage) where T : Delegate
 	{
+		logMessage = null;
+
 		if (!t.DeclaredMethods.Any(x => x.Name == methodName))
 		{
-			// TODO: логи, если нет нужного метода
-			Debug.LogWarning($"В классе \"{t.FullName}\" нет метода с именем \"{methodName}\".");
-			//Debug.LogWarning($"There is no method named \"{methodName}\" in class \"{t.FullName}\".");
+			logMessage = $"В классе \"{t.FullName}\" нет метода с именем \"{methodName}\"";
 			return null;
 		}
 
@@ -130,8 +139,7 @@ public class ScriptLoader
 		}
 		catch (Exception e)
 		{
-			// TODO: логи при неправильной загрузке
-			Debug.LogWarning($"Неправильная загрузка метода | {t.FullName}: {e.Message}");
+			ScreenDebug.LogWarning($"Неправильная загрузка метода | {t.FullName}: {e.Message}");
 			return null;
 		}
 	}
@@ -171,8 +179,7 @@ public class ScriptLoader
 
 				foreach (Diagnostic diagnostic in failures)
 				{
-					// TODO: добавить логи при ошибке
-					Debug.LogError($"{diagnostic.Id}: {diagnostic.GetMessage()}");
+					ScreenDebug.LogError($"{diagnostic.Id}: {diagnostic.GetMessage()}");
 				}
 			}
 			else

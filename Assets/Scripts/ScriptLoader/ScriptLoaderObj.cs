@@ -31,7 +31,7 @@ public class ScriptLoaderObj : MonoBehaviour
 		// Спавн новых кнопок
 		foreach (var alg in algorithms)
 		{
-			if (alg.FindBestPath == null && alg.FindAllPaths == null && alg.AlgorithmTeaching == null)
+			if (alg.FindBestPath == null && alg.AlgorithmTeaching == null)
 				continue;
 
 			var algObj = Instantiate(algButtonsPrefab, algsGroupObj);
@@ -51,22 +51,13 @@ public class ScriptLoaderObj : MonoBehaviour
 				algObj.FindBestPathBtn.onClick.AddListener(() => graph.FindBestPath(alg.FindBestPath));
 			}
 
-			// FindAllPaths
-			if (alg.FindAllPaths == null)
-				algObj.SetSubButtonVisibleState(algObj.FindAllPathsBtn, false);
-			else
-			{
-				algObj.SetSubButtonVisibleState(algObj.FindAllPathsBtn, true);
-				algObj.FindAllPathsBtn.onClick.AddListener(() => graph.FindAllPaths(alg.FindAllPaths));
-			}
-
 			// AlgorithmTeaching
 			if (alg.AlgorithmTeaching == null)
 				algObj.SetSubButtonVisibleState(algObj.AlgorithmTeachingBtn, false);
 			else
 			{
 				algObj.SetSubButtonVisibleState(algObj.AlgorithmTeachingBtn, true);
-				algObj.AlgorithmTeachingBtn.onClick.AddListener(() => graph.StartAlgorithmTeaching(alg.AlgorithmTeaching));
+				algObj.AlgorithmTeachingBtn.onClick.AddListener(() => graph.StartAlgorithmTeaching(alg.AlgorithmTeaching, alg.FindBestPath));
 			}
 			#endregion
 		}
@@ -82,9 +73,6 @@ public class ScriptLoaderObj : MonoBehaviour
 		// FindBestPath
 		alg.FindBestPathBtn.onClick.AddListener(() => graph.FindBestPath(DijkstraAlgorithm.FindBestPath));
 		alg.SetSubButtonVisibleState(alg.FindBestPathBtn, true);
-
-		// FindAllPaths
-		alg.SetSubButtonVisibleState(alg.FindAllPathsBtn, false);
 
 		// AlgorithmTeaching
 		// TODO: дейкстра algorithmTeachingBtn .visible = true

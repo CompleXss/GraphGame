@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
-using UnityEngine.UI;
 
 public class UI : MonoBehaviour
 {
@@ -82,7 +81,7 @@ public class UI : MonoBehaviour
 		{
 			upLeftPanel.SetActive(true);
 
-			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, Vector2.zero, () =>
+			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, Vector2.zero, moveSpeed, () =>
 			{
 				lowerLeftPanel.SetActive(false);
 
@@ -103,7 +102,7 @@ public class UI : MonoBehaviour
 				upLeftPanelDragZoneIsSmall = false;
 			}
 
-			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, new Vector2(-upLeftPanelRT.rect.width, 0f), () =>
+			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, new Vector2(-upLeftPanelRT.rect.width, 0f), moveSpeed, () =>
 			{
 				upLeftPanel.SetActive(false);
 			}));
@@ -127,7 +126,7 @@ public class UI : MonoBehaviour
 		{
 			upPanel.SetActive(true);
 
-			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), () =>
+			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), moveSpeed, () =>
 			{
 				dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, -upPanelRT.rect.height);
 				upPanelDragZoneIsSmall = true;
@@ -144,7 +143,7 @@ public class UI : MonoBehaviour
 				upPanelDragZoneIsSmall = false;
 			}
 
-			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), () =>
+			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), moveSpeed, () =>
 			{
 				upPanel.SetActive(false);
 			}));
@@ -153,7 +152,7 @@ public class UI : MonoBehaviour
 
 
 
-	private IEnumerator MovePanel(RectTransform panel, Vector2 targetPos, Action callback)
+	public static IEnumerator MovePanel(RectTransform panel, Vector2 targetPos, float moveSpeed, Action callback)
 	{
 		if (moveSpeed == 0f)
 			yield break;
@@ -169,41 +168,4 @@ public class UI : MonoBehaviour
 
 		callback?.Invoke();
 	}
-
-	//private void MoveDragZone(Vector2 panelPos, Vector2 prevPanelPos, DragZone.ChangeSizeSide side, Vector2 stopMovingPosition)
-	//{
-	//	float moveDirection = Convert.ToSingle(side == DragZone.ChangeSizeSide.Right_Or_Top) * 2 - 1;
-
-	//	Vector2 diff = panelPos - prevPanelPos;
-
-	//	// X
-	//	if (panelPos.x > stopMovingPosition.x)
-	//	{
-	//		if (prevPanelPos.x < stopMovingPosition.x)
-	//			diff.x = panelPos.x - stopMovingPosition.x;
-
-	//		dragZone.ChangeSize(DragZone.SizeAxis.X, side, diff.x * moveDirection);
-	//	}
-	//	else if (prevPanelPos.x > stopMovingPosition.x)
-	//	{
-	//		diff.x = stopMovingPosition.x - prevPanelPos.x;
-
-	//		dragZone.ChangeSize(DragZone.SizeAxis.X, side, diff.x * moveDirection);
-	//	}
-
-	//	// Y
-	//	if (panelPos.y > stopMovingPosition.y)
-	//	{
-	//		if (prevPanelPos.y < stopMovingPosition.y)
-	//			diff.y = panelPos.y - stopMovingPosition.y;
-
-	//		dragZone.ChangeSize(DragZone.SizeAxis.Y, side, diff.y * moveDirection);
-	//	}
-	//	else if (prevPanelPos.y > stopMovingPosition.y)
-	//	{
-	//		diff.y = stopMovingPosition.y - prevPanelPos.y;
-
-	//		dragZone.ChangeSize(DragZone.SizeAxis.Y, side, diff.y * moveDirection);
-	//	}
-	//}	
 }

@@ -2,41 +2,34 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using TMPro;
 
+[RequireComponent(typeof(LineDrawer))]
 public class Graph : MonoBehaviour
 {
 	[SerializeField] private UI ui;
+	[SerializeField] private OutputGraph outputGraph;
 
 	[Space]
 	[SerializeField] private Node startNode;
 	[SerializeField] private Node endNode;
 
-	[Header("Отрисовка линий")]
-	[SerializeField] private LineInfo lineInfo;
-	[SerializeField] private Transform linesParent;
-
 	[Header("Подсветка нод")]
-	[SerializeField] private Color Start_NodeColor = Color.green;
-	[SerializeField] private Color End_NodeColor = Color.red;
-	[SerializeField] private Color ConnectionStart_NodeColor = Color.cyan;
-	[SerializeField] private Color ConnectionEnd_NodeColor = Color.magenta;
-	[SerializeField] private Color HighlightMiddle_NodeColor = Color.yellow;
+	[SerializeField] private NodeColors nodeColors;
+
+	[HideInInspector] public LineDrawer lineDrawer;
 
 	private List<Node> nodes;
-	private List<Transform> texts;
 	private Queue<LineRenderer> finalPathLines;
 
 	private Coroutine algorithmTeachingRoutine;
+	private FindBestPathDelegate findBestPath_teaching;
 	private List<ValueTuple<Node, Action<Node>>> subscribedNodes = new List<ValueTuple<Node, Action<Node>>>();
 
-	private Node highlightedMiddleNode;
-	private Node highlightedConnectionStartNode;
-	private Node highlightedConnectionEndNode;
 	private bool teachingCanGo = true;
 
 
@@ -56,11 +49,12 @@ public class Graph : MonoBehaviour
 
 
 
+	// Awake & Start
 	void Awake()
 	{
 		nodes = new List<Node>();
-		texts = new List<Transform>();
 		finalPathLines = new Queue<LineRenderer>();
+		lineDrawer = GetComponent<LineDrawer>();
 
 		var children = GetComponentsInChildren<Node>();
 		nodes.AddRange(children);
@@ -89,44 +83,20 @@ public class Graph : MonoBehaviour
 					var firstNode = nodes.Find(x => x.ID == i);
 					var secondNode = nodes.Find(x => x.ID == j);
 
-					var line = DrawLine(firstNode.transform.localPosition, secondNode.transform.localPosition);
-					DrawLineText(line, firstNode, secondNode);
+					lineDrawer.DrawLineWithText(firstNode, secondNode);
 				}
-
-
-
-		//// old не учитывает, что связи двусторонние
-		//foreach (var node in nodes)
-		//	foreach (var con in node.Connections)
-		//	{
-		//		var line = GetInstantiatedLine();
-		//		line.SetPosition(0, node.transform.localPosition);
-		//		line.SetPosition(1, con.node.transform.localPosition);
-		//	}
-	}
-
-	public void ZoomTexts(float scaleFactor)
-	{
-		foreach (var text in texts)
-		{
-			Vector3 localScale = text.localScale;
-			Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
-
-			text.localScale = newScale;
-		}
 	}
 
 
 
 	private void DrawPath(int[] path, Color color)
 	{
-		// TODO: проверить отрисовку пути
 		for (int i = 0; i < path.Length - 1; i++)
 		{
 			var fromPos = nodes.Find(x => x.ID == path[i]).transform.localPosition;
 			var toPos = nodes.Find(x => x.ID == path[i + 1]).transform.localPosition;
 
-			var line = DrawLine(fromPos, toPos, color, color);
+			var line = lineDrawer.DrawLine(fromPos, toPos, color, color);
 			finalPathLines.Enqueue(line);
 		}
 	}
@@ -145,116 +115,74 @@ public class Graph : MonoBehaviour
 			Destroy(finalPathLines.Dequeue().gameObject);
 	}
 
-
-
-	#region Drawing Lines
-	private LineRenderer GetInstantiatedLine()
+	private string PathToString(int[] path)
 	{
-		return Instantiate(lineInfo.LinePrefab, linesParent);
+		StringBuilder str = new StringBuilder("");
+		foreach (var p in path)
+		{
+			str.Append(p);
+			str.Append(" ");
+		}
+		return str.ToString();
 	}
-	private LineRenderer DrawLine(Vector3 from, Vector3 to, Color startColor, Color endColor)
+
+	private bool ValidateAndPrintPath(int[] path)
 	{
-		var line = GetInstantiatedLine();
-		line.startColor = startColor;
-		line.endColor = endColor;
+		if (ValidateStartEndNodes() && ValidatePath(path))
+		{
+			DrawPath(path, Color.yellow);
+			ScreenDebug.Log("Успешный путь: " + PathToString(path));
 
-		line.SetPosition(0, from);
-		line.SetPosition(1, to);
+			return true;
+		}
+		else
+		{
+			ScreenDebug.LogWarning("Ошибка пути: " + PathToString(path));
 
-		return line;
+			return false;
+		}
 	}
-	private LineRenderer DrawLine(Vector3 from, Vector3 to)
-	{
-		var line = GetInstantiatedLine();
-
-		line.SetPosition(0, from);
-		line.SetPosition(1, to);
-
-		return line;
-	}
-	private void DrawLineText(LineRenderer line, Node firstNode, Node secondNode)
-	{
-		// Weight text
-		var lineText = Instantiate(lineInfo.LineTextPrefab, line.transform);
-		texts.Add(lineText.transform);
-
-		var firstPos = firstNode.transform.localPosition;
-		var secondPos = secondNode.transform.localPosition;
-
-		Vector2 normale = secondPos - firstPos;
-		normale = new Vector2(-normale.y, normale.x); // Разворот на 90* против часовой
-
-		Vector2 textPos = new Vector2((firstPos.x + secondPos.x) / 2, (firstPos.y + secondPos.y) / 2);
-		textPos += normale.normalized * lineInfo.TextUpOffset;
-
-		float rotation = Mathf.Atan((secondPos.y - firstPos.y) / (secondPos.x - firstPos.x)) * Mathf.Rad2Deg;
-		lineText.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
-
-		lineText.transform.localPosition = new Vector3(textPos.x, textPos.y, lineText.transform.localPosition.z);
-		lineText.text = firstNode.Connections.First(x => x.node.ID == secondNode.ID).weight.ToString();
-		lineText.enabled = true;
-	}
-	#endregion
 
 
 
+	/// <summary> Ищет и показывает лучший маршрут. </summary>
 	public void FindBestPath(FindBestPathDelegate algorithm)
 	{
 		if (algorithm == null)
 			return;
 
 		ClearFinalPath();
+		var sw = new System.Diagnostics.Stopwatch();
+
+		sw.Start();
 		var path = algorithm(Matrix, StartNode.ID, EndNode.ID);
+		sw.Stop();
+
+		ScreenDebug.ShowTime(sw.ElapsedMilliseconds.ToString());
 
 		if (ValidateAndPrintPath(path))
-			Debug.Log("Поиск лучшего маршрута завершен!");
-	}
-	private bool ValidateAndPrintPath(int[] path)
-	{
-		if (ValidateStartEndNodes() && ValidatePath(path))
-		{
-			DrawPath(path, Color.yellow);
-
-			// Debug log
-			string res = "";
-			foreach (var p in path)
-				res += p + " ";
-
-			Debug.Log(res);
-			return true;
-		}
-		else
-		{
-			Debug.LogWarning("Ошибка пути.");
-
-			// Debug logWarning
-			string str = "";
-			foreach (var p in path)
-				str += p + " ";
-
-			Debug.LogWarning(str);
-			return false;
-		}
+			ScreenDebug.Log("Поиск лучшего маршрута завершен!");
 	}
 
-	public void FindAllPaths(FindAllPathsDelegate algorithm)
+
+
+	/// <summary>
+	/// Начинает процесс "обучения". Если <paramref name="findBestPathDelegate"/> будет не null, появится возможность увидеть результ работы алгоритма после остановки обучения.
+	/// </summary>
+	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm, FindBestPathDelegate findBestPathDelegate)
 	{
 		if (algorithm == null)
 			return;
 
-		var paths = algorithm(Matrix, 0, 0);
+		ScreenDebug.ClearTime();
 
-		// TODO: Поиск всех маршрутов
-		Debug.Log("Поиск всех маршрутов");
-	}
-
-	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm)
-	{
-		if (algorithm == null)
-			return;
+		findBestPath_teaching = findBestPathDelegate;
 
 		ClearFinalPath();
 		ui.ShowAlgorithmTeachingPanel();
+
+		if (algorithmTeachingRoutine != null)
+			StopCoroutine(algorithmTeachingRoutine);
 
 		algorithmTeachingRoutine = StartCoroutine(AlgorithmTeaching(algorithm));
 	}
@@ -262,11 +190,14 @@ public class Graph : MonoBehaviour
 
 
 	/// <summary>
-	/// Останавливает процесс "обучения", и если <paramref name="findBestPathAlgorithm"/> не null, показывает результат работы алгоритма.
+	/// Останавливает процесс "обучения", и если переданный ранее алгоритм поиска кратчайшего пути не null, показывает результат работы алгоритма.
 	/// </summary>
-	public void StopAlgorithmTeaching(FindBestPathDelegate findBestPathAlgorithm)
+	public void StopAlgorithmTeaching(bool findBestPath)
 	{
-		StopCoroutine(algorithmTeachingRoutine);
+		if (algorithmTeachingRoutine != null)
+			StopCoroutine(algorithmTeachingRoutine);
+
+		ClearNodesHighlighting();
 
 		foreach (var tuple in subscribedNodes)
 		{
@@ -276,7 +207,11 @@ public class Graph : MonoBehaviour
 			node.OnConnectedWith -= method;
 		}
 
-		FinaleAlgorithmTeachng(findBestPathAlgorithm);
+		if (findBestPath && findBestPath_teaching != null)
+		{
+			FinaleAlgorithmTeachng(findBestPath_teaching);
+			findBestPath_teaching = null;
+		}
 	}
 
 	private void FinaleAlgorithmTeachng(FindBestPathDelegate findBestPathAlgorithm)
@@ -291,6 +226,7 @@ public class Graph : MonoBehaviour
 
 	private IEnumerator AlgorithmTeaching(AlgorithmTeaching algorithm)
 	{
+		int[,] graph = null;
 		object dataToSave = null;
 		string message = null;
 
@@ -300,8 +236,9 @@ public class Graph : MonoBehaviour
 		{
 			if (teachingCanGo)
 			{
-				// TODO: завершает работу после проверки 1 ноды
-				var path = algorithm((int[,])Matrix.Clone(), StartNode.ID, EndNode.ID, ref dataToSave, out message, out bool isAlgorithmFinished, out int nodeToHighlight);
+				outputGraph.Show(graph);
+
+				var path = algorithm((int[,])Matrix.Clone(), StartNode.ID, EndNode.ID, out graph, ref dataToSave, out message, out bool isAlgorithmFinished, out int nodeToHighlight);
 
 				if (isAlgorithmFinished)
 				{
@@ -312,27 +249,36 @@ public class Graph : MonoBehaviour
 
 				if (path.Length < 2)
 				{
-					Debug.LogWarning("В процессе обучения получен путь длиной меньше 2."); // TODO: label debug
+					ScreenDebug.LogWarning("В процессе обучения получен путь длиной меньше 2.");
 					yield return new WaitForEndOfFrame();
 				}
 
-				HighlightNodeAs_ConnectionStart(path[0]);
-				HighlightNodeAs_ConnectionEnd(path[path.Length - 1]);
 
-				HighlightNodeAs_Middle(nodeToHighlight);
+
+				ClearNodesHighlighting();
+
+				HighlightNode(path[0], nodeColors.Start);
+				HighlightNode(path[path.Length - 1], nodeColors.End);
+				HighlightNode(nodeToHighlight, nodeColors.Middle);
+
+				if (path.Length > 2 && nodeToHighlight == -1 || path.Length > 3)
+				{
+					for (int i = 1; i < path.Length - 1; i++)
+						HighlightNode(path[i], nodeColors.Additional);
+				}
+
+
 
 				for (int nodeID = 1; nodeID < path.Length; nodeID++)
 				{
 					connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
 				}
-				Debug.Log(message);
+				ScreenDebug.ShowTeachingMessage(message);
 
 
 
-				string str = "";
-				foreach (var item in path)
-					str += item + " ";
-				Debug.Log(str);
+				//Debug.Log(PathToString(path));
+
 
 
 				ClearAllManualConnections();
@@ -345,14 +291,12 @@ public class Graph : MonoBehaviour
 
 
 		// Завершение работы
-		RemoveNodeHighlighting(highlightedConnectionStartNode);
-		RemoveNodeHighlighting(highlightedConnectionEndNode);
-		RemoveNodeHighlighting(highlightedMiddleNode);
+		ClearNodesHighlighting();
 
 		if (!string.IsNullOrWhiteSpace(message))
-			Debug.Log(message); // TODO: вывод на label
+			ScreenDebug.ShowTeachingMessage(message);
 		else
-			Debug.Log("else: Работа алгоритма завершена."); // TODO: вывод на label
+			ScreenDebug.ShowTeachingMessage("Работа алгоритма завершена.");
 	}
 
 
@@ -373,7 +317,6 @@ public class Graph : MonoBehaviour
 
 		if (!ValidateStartEndNodes("Алгоритм обучения"))
 		{
-			// TODO: дебажить в лейбел?
 			teachingCanGo = true;
 			return;
 		}
@@ -398,54 +341,21 @@ public class Graph : MonoBehaviour
 
 
 
-	#region NodeHighlighting
-	private void HighlightNodeAs(Node nodeToHighlight, ref Node asWhatNode, Color color)
+	#region Node highlighting
+	public void ClearNodesHighlighting()
 	{
-		RemoveNodeHighlighting(asWhatNode);
-
-		if (nodeToHighlight != null)
-		{
-			nodeToHighlight.Highlight(color);
-			asWhatNode = nodeToHighlight;
-		}
-		else
-			Debug.Log("node is null");
+		foreach (var node in nodes)
+			node.ClearHighlighting();
 	}
 
-	private void HighlightNodeAs_ConnectionStart(Node nodeToHighlight)
+	public void HighlightNode(Node node, Color color)
 	{
-		HighlightNodeAs(nodeToHighlight, ref highlightedConnectionStartNode, ConnectionStart_NodeColor);
+		if (node != null)
+			node.Highlight(color);
 	}
-	private void HighlightNodeAs_ConnectionStart(int nodeToHighlightID)
+	public void HighlightNode(int nodeID, Color color)
 	{
-		HighlightNodeAs_ConnectionStart(nodes.Find(x => x.ID == nodeToHighlightID));
-	}
-
-	private void HighlightNodeAs_ConnectionEnd(Node nodeToHighlight)
-	{
-		HighlightNodeAs(nodeToHighlight, ref highlightedConnectionEndNode, ConnectionEnd_NodeColor);
-	}
-	private void HighlightNodeAs_ConnectionEnd(int nodeToHighlightID)
-	{
-		HighlightNodeAs_ConnectionEnd(nodes.Find(x => x.ID == nodeToHighlightID));
-	}
-
-	private void HighlightNodeAs_Middle(Node nodeToHighlight)
-	{
-		HighlightNodeAs(nodeToHighlight, ref highlightedMiddleNode, HighlightMiddle_NodeColor);
-	}
-	private void HighlightNodeAs_Middle(int nodeToHighlightID)
-	{
-		RemoveNodeHighlighting(highlightedMiddleNode);
-
-		if (nodeToHighlightID >= 0)
-			HighlightNodeAs_Middle(nodes.Find(x => x.ID == nodeToHighlightID));
-	}
-
-	private void RemoveNodeHighlighting(Node nodeToRemoveHighlightingFrom)
-	{
-		if (nodeToRemoveHighlightingFrom != null)
-			nodeToRemoveHighlightingFrom.RemoveHighlighting();
+		HighlightNode(nodes.Find(x => x.ID == nodeID), color);
 	}
 	#endregion
 
@@ -457,13 +367,13 @@ public class Graph : MonoBehaviour
 
 		if (StartNode == null)
 		{
-			Debug.LogWarning(senderName + " | StartNode is null.");
+			ScreenDebug.LogWarning(senderName + " | StartNode is null.");
 			validated = false;
 		}
 
 		if (EndNode == null)
 		{
-			Debug.LogWarning(senderName + " | EndNode is null.");
+			ScreenDebug.LogWarning(senderName + " | EndNode is null.");
 			validated = false;
 		}
 

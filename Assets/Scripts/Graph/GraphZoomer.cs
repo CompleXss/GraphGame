@@ -171,7 +171,18 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 			//node.Zoom(scaleFactor);
 		}
 
-		graph.ZoomTexts(scaleFactor);
+		ZoomTexts(scaleFactor);
+	}
+
+	private void ZoomTexts(float scaleFactor)
+	{
+		foreach (var text in graph.lineDrawer.texts)
+		{
+			Vector3 localScale = text.localScale;
+			Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
+
+			text.localScale = newScale;
+		}
 	}
 	#endregion
 

@@ -42,6 +42,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	private bool isHolding;
 
 
+
 	void Awake()
 	{
 		ID = objectsCount++;
@@ -157,15 +158,18 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 	public void Highlight(Color color)
 	{
-		if (isHighlighted)
+		if (circle.color == color)
 			return;
 
-		ring.transform.localScale *= 1.1f;
-		circle.color = color;
+		if (!isHighlighted)
+		{
+			ring.transform.localScale *= 1.1f;
+			isHighlighted = true;
+		}
 
-		isHighlighted = true;
+		circle.color = color;
 	}
-	public void RemoveHighlighting()
+	public void ClearHighlighting()
 	{
 		if (!isHighlighted)
 			return;
@@ -174,6 +178,11 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		circle.color = Color.white;
 
 		isHighlighted = false;
+	}
+	public void RemoveHighlighting(Color colorToRemove)
+	{
+		if (circle.color == colorToRemove)
+			ClearHighlighting();
 	}
 
 

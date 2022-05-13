@@ -12,11 +12,9 @@ public class AlgorithmButton : MonoBehaviour
 	[SerializeField] private TextMeshProUGUI nameText;
 
 	[SerializeField] private Button findBestPathBtn;
-	[SerializeField] private Button findAllPathsBtn;
 	[SerializeField] private Button algorithmTeachingBtn;
 
 	public Button FindBestPathBtn => findBestPathBtn;
-	public Button FindAllPathsBtn => findAllPathsBtn;
 	public Button AlgorithmTeachingBtn => algorithmTeachingBtn;
 
 	public string UIName
