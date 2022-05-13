@@ -131,8 +131,16 @@ public class Graph : MonoBehaviour
 		}
 	}
 
+	private void ClearAllManualConnections()
+	{
+		foreach (var node in nodes)
+			node.ClearManualConnection();
+	}
+
 	private void ClearFinalPath()
 	{
+		ClearAllManualConnections();
+
 		while (finalPathLines.Count > 0)
 			Destroy(finalPathLines.Dequeue().gameObject);
 	}
@@ -321,11 +329,13 @@ public class Graph : MonoBehaviour
 
 
 
+				string str = "";
 				foreach (var item in path)
-					Debug.Log(item);
+					str += item + " ";
+				Debug.Log(str);
 
 
-
+				ClearAllManualConnections();
 				MakePlayerConnectNodes(connectionsQueue);
 			}
 
@@ -368,6 +378,8 @@ public class Graph : MonoBehaviour
 			return;
 		}
 
+
+
 		fromNode.OnConnectedWith += CheckIfNodeIsRight;
 		subscribedNodes.Add((fromNode, CheckIfNodeIsRight));
 
@@ -378,8 +390,6 @@ public class Graph : MonoBehaviour
 				teachingCanGo = true;
 				fromNode.OnConnectedWith -= CheckIfNodeIsRight;
 				subscribedNodes.Remove((fromNode, CheckIfNodeIsRight));
-
-				// TODO: clear connection made by player
 
 				MakePlayerConnectNodes(connectionsQueue);
 			}
@@ -398,6 +408,8 @@ public class Graph : MonoBehaviour
 			nodeToHighlight.Highlight(color);
 			asWhatNode = nodeToHighlight;
 		}
+		else
+			Debug.Log("node is null");
 	}
 
 	private void HighlightNodeAs_ConnectionStart(Node nodeToHighlight)

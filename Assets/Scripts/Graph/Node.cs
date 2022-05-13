@@ -92,9 +92,11 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		{
 			conNode = obj.GetComponent<Node>();
 
-			if (this.Connections.Any(x => x.node.ID == conNode.ID) // if can connect
-				&& conNode.ConnectedTo != this)
+			if (this.Connections.Any(x => x.node.ID == conNode.ID)) // if can connect
 			{
+				if (conNode.ConnectedTo == this)
+					conNode.ClearManualConnection();
+
 				line.SetPosition(1, obj.transform.localPosition);
 				connectedNode = conNode;
 
@@ -120,7 +122,13 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		isHolding = false;
 	}
 
+	public void ClearManualConnection()
+	{
+		if (line != null)
+			line.enabled = false;
 
+		ConnectedTo = null;
+	}
 
 	public void OnPointerDown(PointerEventData eventData)
 	{
