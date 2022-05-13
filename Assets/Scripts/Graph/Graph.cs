@@ -207,6 +207,7 @@ public class Graph : MonoBehaviour
 
 			node.OnConnectedWith -= method;
 		}
+		teachingCanGo = true;
 
 		if (findBestPath && findBestPath_teaching != null)
 		{
