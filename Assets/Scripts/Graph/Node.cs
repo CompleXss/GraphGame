@@ -18,6 +18,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 	[SerializeField] private SpriteRenderer circle;
 	[SerializeField] private SpriteRenderer ring;
+	[SerializeField] private TextMeshProUGUI IDBox;
 
 
 
@@ -44,6 +45,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		//ID = objectsCount++;
 		ID = id;
 		gameObject.name = "Node " + ID;
+		IDBox.text = ID.ToString();
 
 		input = new InputMaster();
 		parent = gameObject.GetComponentInParent<Graph>().transform;
