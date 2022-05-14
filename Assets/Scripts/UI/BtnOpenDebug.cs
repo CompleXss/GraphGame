@@ -14,11 +14,11 @@ public class BtnOpenDebug : MonoBehaviour
 
 	void OnEnable()
 	{
-		ScreenDebug.OnNewLog += Notify;
+		ScreenDebug.OnNewLogWarningOrError += Notify;
 	}
 	void OnDisable()
 	{
-		ScreenDebug.OnNewLog -= Notify;
+		ScreenDebug.OnNewLogWarningOrError -= Notify;
 	}
 
 
@@ -28,7 +28,7 @@ public class BtnOpenDebug : MonoBehaviour
 		notificationsCount++;
 
 		notifText.text = notificationsCount.ToString();
-		notifText.gameObject.SetActive(true);
+		notifCircle.SetActive(true);
 	}
 
 	public void ClearNotifications()

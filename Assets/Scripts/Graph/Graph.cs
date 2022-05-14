@@ -294,6 +294,7 @@ public class Graph : MonoBehaviour
 
 		// Завершение работы
 		ClearNodesHighlighting();
+		ClearAllManualConnections();
 
 		if (!string.IsNullOrWhiteSpace(message))
 			ScreenDebug.ShowTeachingMessage(message);

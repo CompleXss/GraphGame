@@ -17,7 +17,7 @@ public class ScreenDebug : MonoBehaviour
 	[SerializeField] private Sprite warningSprite;
 	[SerializeField] private Sprite errorSprite;
 
-	public static event Action OnNewLog;
+	public static event Action OnNewLogWarningOrError;
 
 
 
@@ -42,12 +42,12 @@ public class ScreenDebug : MonoBehaviour
 	public static void LogWarning(string message)
 	{
 		instance.Log(message, instance.warningSprite);
-		OnNewLog?.Invoke();
+		OnNewLogWarningOrError?.Invoke();
 	}
 	public static void LogError(string message)
 	{
 		instance.Log(message, instance.errorSprite);
-		OnNewLog?.Invoke();
+		OnNewLogWarningOrError?.Invoke();
 	}
 
 	private void Log(string message, Sprite sprite)
