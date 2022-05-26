@@ -11,7 +11,7 @@ using TMPro;
 [RequireComponent(typeof(LineDrawer))]
 public class Graph : MonoBehaviour
 {
-	[SerializeField] private UI ui;
+	[SerializeField] private PanelMover panelMover;
 	[SerializeField] private OutputGraph outputGraph;
 
 	[Header("Nodes")]
@@ -172,7 +172,7 @@ public class Graph : MonoBehaviour
 		findBestPath_teaching = findBestPathDelegate;
 
 		ClearFinalPath();
-		ui.ShowAlgorithmTeachingPanel();
+		panelMover.ShowAlgorithmTeachingPanel();
 
 		if (algorithmTeachingRoutine != null)
 			StopCoroutine(algorithmTeachingRoutine);
@@ -214,7 +214,7 @@ public class Graph : MonoBehaviour
 		if (findBestPathAlgorithm != null)
 			FindBestPath(findBestPathAlgorithm);
 
-		ui.HideAlgorithmTeachingPanel();
+		panelMover.HideAlgorithmTeachingPanel();
 	}
 
 
@@ -237,7 +237,7 @@ public class Graph : MonoBehaviour
 			if (i == results.Length - 1)
 			{
 				ValidateAndPrintPath(path);
-				ui.HideAlgorithmTeachingPanel();
+				panelMover.HideAlgorithmTeachingPanel();
 				break;
 			}
 			

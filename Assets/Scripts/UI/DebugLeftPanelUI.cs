@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class DebugLeftPanelUI : MonoBehaviour
 {
-	[SerializeField] private UI ui;
+	[SerializeField] private PanelMover panelMover;
 
 	private RectTransform rectTransform;
 	private Coroutine routine;
@@ -30,6 +30,6 @@ public class DebugLeftPanelUI : MonoBehaviour
 		if (routine != null)
 			StopCoroutine(routine);
 
-		routine = StartCoroutine(ui.MovePanel(rectTransform, position, ui.panelMoveSpeed, callback));
+		routine = StartCoroutine(panelMover.MovePanel(rectTransform, position, panelMover.moveSpeed, callback));
 	}
 }

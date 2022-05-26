@@ -3,13 +3,13 @@ using System.Collections;
 
 using UnityEngine;
 
-public class UI : MonoBehaviour
+public class PanelMover : MonoBehaviour
 {
 	[SerializeField] private DragZone dragZone;
 	[SerializeField] private GameObject lowerLeftPanel;
 	[SerializeField] private GameObject upLeftPanel;
 	[SerializeField] private GameObject upPanel;
-	public float panelMoveSpeed;
+	public float moveSpeed;
 
 	private RectTransform upLeftPanelRT;
 	private RectTransform lowerLeftPanelRT;
@@ -65,7 +65,7 @@ public class UI : MonoBehaviour
 			// Уменьшить Драг Зону
 			dragZone.ChangeSize(DragZone.ChangeSizeSide.Left, lowerLeftPanelRT.sizeDelta.x - upLeftPanelRT.sizeDelta.x);
 
-			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, Vector2.zero, panelMoveSpeed, () =>
+			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, Vector2.zero, moveSpeed, () =>
 			{
 				lowerLeftPanel.SetActive(false);
 			}));
@@ -79,7 +79,7 @@ public class UI : MonoBehaviour
 			// Увеличить Драг Зону
 			dragZone.ChangeSize(DragZone.ChangeSizeSide.Left, upLeftPanelRT.sizeDelta.x - lowerLeftPanelRT.sizeDelta.x);
 
-			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, new Vector2(-upLeftPanelRT.rect.width, 0f), panelMoveSpeed, () =>
+			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, new Vector2(-upLeftPanelRT.rect.width, 0f), moveSpeed, () =>
 			{
 				upLeftPanel.SetActive(false);
 			}));
@@ -106,7 +106,7 @@ public class UI : MonoBehaviour
 			// Уменьшить Драг Зону
 			dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, -upPanelRT.rect.height);
 
-			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), panelMoveSpeed, null));
+			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), moveSpeed, null));
 		}
 
 		// Скрыть
@@ -115,7 +115,7 @@ public class UI : MonoBehaviour
 			// Увеличить Драг Зону
 			dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, upPanelRT.rect.height);
 
-			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), panelMoveSpeed, () =>
+			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), moveSpeed, () =>
 			{
 				upPanel.SetActive(false);
 			}));
