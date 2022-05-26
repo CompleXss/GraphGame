@@ -8,11 +8,11 @@ public class ScreenDebug : MonoBehaviour
 	[SerializeField] private DebugEntry newEntryPrefab;
 	[SerializeField] private Transform whereToSpawnEntry;
 
-	[Header("Обучение")]
+	[Header("Teaching")]
 	[SerializeField] private TextMeshProUGUI messageBox;
 	[SerializeField] private TextMeshProUGUI timeBox;
 
-	[Header("Иконки")]
+	[Header("Icons")]
 	[SerializeField] private Sprite messageSprite;
 	[SerializeField] private Sprite warningSprite;
 	[SerializeField] private Sprite errorSprite;
@@ -53,6 +53,7 @@ public class ScreenDebug : MonoBehaviour
 	private void Log(string message, Sprite sprite)
 	{
 		var entry = Instantiate(newEntryPrefab, whereToSpawnEntry);
+
 		entry.Sprite = sprite;
 		entry.Time = DateTime.Now.ToString("HH:mm:ss");
 		entry.Text = message;
@@ -70,6 +71,7 @@ public class ScreenDebug : MonoBehaviour
 	}
 
 
+
 	public static void ShowTeachingMessage(string message)
 	{
 		instance.messageBox.text = message;
@@ -80,11 +82,10 @@ public class ScreenDebug : MonoBehaviour
 	}
 
 
+
 	public static void ClearAllEntries()
 	{
 		foreach (Transform obj in instance.whereToSpawnEntry)
-		{
 			Destroy(obj.gameObject);
-		}
 	}
 }
