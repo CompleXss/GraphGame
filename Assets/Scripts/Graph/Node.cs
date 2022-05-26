@@ -24,6 +24,7 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 	// Public
 	public int ID { get; private set; }
+	public RectTransform RectTransform { get; private set; }
 	public BindingList<Connection> Connections { get; private set; }
 	public Node ConnectedTo { get; private set; }
 	public event Action<Node> OnConnectedWith;
@@ -46,6 +47,8 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 		ID = id;
 		gameObject.name = "Node " + ID;
 		IDBox.text = ID.ToString();
+
+		RectTransform = GetComponent<RectTransform>();
 
 		input = new InputMaster();
 		parent = gameObject.GetComponentInParent<Graph>().transform;
