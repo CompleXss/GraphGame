@@ -1258,7 +1258,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e1b69a1c5cdc0749aa97ea9da26c307, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ui: {fileID: 740301160}
+  panelMover: {fileID: 740301160}
   outputGraph: {fileID: 586652908}
   startNode: {fileID: 1488851512}
   endNode: {fileID: 1242265028}
@@ -2394,7 +2394,7 @@ MonoBehaviour:
   lowerLeftPanel: {fileID: 2137562235}
   upLeftPanel: {fileID: 413514602}
   upPanel: {fileID: 225326758}
-  panelMoveSpeed: 7
+  moveSpeed: 7
 --- !u!1 &781601468
 GameObject:
   m_ObjectHideFlags: 0
@@ -6356,7 +6356,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4686965a8a153e46a4f6bde90b55994, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ui: {fileID: 740301160}
+  panelMover: {fileID: 740301160}
 --- !u!1 &1876852461
 GameObject:
   m_ObjectHideFlags: 0

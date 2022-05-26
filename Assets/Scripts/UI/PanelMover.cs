@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PanelMover : MonoBehaviour
 {
@@ -54,6 +55,8 @@ public class PanelMover : MonoBehaviour
 
 		if (upLeftPanelRoutine != null)
 			StopCoroutine(upLeftPanelRoutine);
+
+		SetButtonsActiveState(lowerLeftPanelRT, !state);
 
 
 
@@ -120,6 +123,12 @@ public class PanelMover : MonoBehaviour
 				upPanel.SetActive(false);
 			}));
 		}
+	}
+
+	private void SetButtonsActiveState(Transform buttonsParentObj, bool state)
+	{
+		foreach (Button btn in buttonsParentObj.GetComponentsInChildren<Button>())
+			btn.enabled = state;
 	}
 
 
