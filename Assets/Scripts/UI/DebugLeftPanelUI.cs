@@ -3,12 +3,10 @@ using UnityEngine;
 
 public class DebugLeftPanelUI : MonoBehaviour
 {
-	[SerializeField] private float moveSpeed;
+	[SerializeField] private UI ui;
 
 	private RectTransform rectTransform;
 	private Coroutine routine;
-
-
 
 	void Awake()
 	{
@@ -32,6 +30,6 @@ public class DebugLeftPanelUI : MonoBehaviour
 		if (routine != null)
 			StopCoroutine(routine);
 
-		routine = StartCoroutine(UI.MovePanel(rectTransform, position, moveSpeed, callback));
+		routine = StartCoroutine(ui.MovePanel(rectTransform, position, ui.panelMoveSpeed, callback));
 	}
 }

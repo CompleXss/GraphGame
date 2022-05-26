@@ -1,7 +1,5 @@
 using System;
-using System.Linq;
 using System.Collections;
-using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -11,7 +9,7 @@ public class UI : MonoBehaviour
 	[SerializeField] private GameObject lowerLeftPanel;
 	[SerializeField] private GameObject upLeftPanel;
 	[SerializeField] private GameObject upPanel;
-	[SerializeField] private float moveSpeed;
+	public float panelMoveSpeed;
 
 	private RectTransform upLeftPanelRT;
 	private RectTransform lowerLeftPanelRT;
@@ -23,9 +21,6 @@ public class UI : MonoBehaviour
 	private bool upLeftPanelShown;
 	private bool upPanelShown;
 
-	private bool upLeftPanelDragZoneIsSmall;
-	private bool upPanelDragZoneIsSmall;
-
 
 
 	void Awake()
@@ -33,20 +28,6 @@ public class UI : MonoBehaviour
 		upLeftPanelRT = upLeftPanel.GetComponent<RectTransform>();
 		lowerLeftPanelRT = lowerLeftPanel.GetComponent<RectTransform>();
 		upPanelRT = upPanel.GetComponent<RectTransform>();
-
-		input = new InputMaster();
-		input.UI.T.performed += _ => ShowAlgorithmTeachingPanel();
-		input.UI.Y.performed += _ => HideAlgorithmTeachingPanel();
-	}
-
-	InputMaster input;
-	void OnEnable()
-	{
-		input.Enable();
-	}
-	void OnDisable()
-	{
-		input.Disable();
 	}
 
 
@@ -81,12 +62,12 @@ public class UI : MonoBehaviour
 		{
 			upLeftPanel.SetActive(true);
 
-			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, Vector2.zero, moveSpeed, () =>
+			// Уменьшить Драг Зону
+			dragZone.ChangeSize(DragZone.ChangeSizeSide.Left, lowerLeftPanelRT.sizeDelta.x - upLeftPanelRT.sizeDelta.x);
+
+			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, Vector2.zero, panelMoveSpeed, () =>
 			{
 				lowerLeftPanel.SetActive(false);
-
-				dragZone.ChangeSize(DragZone.ChangeSizeSide.Left, lowerLeftPanelRT.sizeDelta.x - upLeftPanelRT.sizeDelta.x);
-				upLeftPanelDragZoneIsSmall = true;
 			}));
 		}
 
@@ -95,14 +76,10 @@ public class UI : MonoBehaviour
 		{
 			lowerLeftPanel.SetActive(true);
 
-			if (upLeftPanelDragZoneIsSmall)
-			{
-				// Увеличить Драг Зону
-				dragZone.ChangeSize(DragZone.ChangeSizeSide.Left, upLeftPanelRT.sizeDelta.x - lowerLeftPanelRT.sizeDelta.x);
-				upLeftPanelDragZoneIsSmall = false;
-			}
+			// Увеличить Драг Зону
+			dragZone.ChangeSize(DragZone.ChangeSizeSide.Left, upLeftPanelRT.sizeDelta.x - lowerLeftPanelRT.sizeDelta.x);
 
-			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, new Vector2(-upLeftPanelRT.rect.width, 0f), moveSpeed, () =>
+			upLeftPanelRoutine = StartCoroutine(MovePanel(upLeftPanelRT, new Vector2(-upLeftPanelRT.rect.width, 0f), panelMoveSpeed, () =>
 			{
 				upLeftPanel.SetActive(false);
 			}));
@@ -126,24 +103,19 @@ public class UI : MonoBehaviour
 		{
 			upPanel.SetActive(true);
 
-			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), moveSpeed, () =>
-			{
-				dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, -upPanelRT.rect.height);
-				upPanelDragZoneIsSmall = true;
-			}));
+			// Уменьшить Драг Зону
+			dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, -upPanelRT.rect.height);
+
+			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), panelMoveSpeed, null));
 		}
 
 		// Скрыть
 		else
 		{
-			if (upPanelDragZoneIsSmall)
-			{
-				// Увеличить Драг Зону
-				dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, upPanelRT.rect.height);
-				upPanelDragZoneIsSmall = false;
-			}
+			// Увеличить Драг Зону
+			dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, upPanelRT.rect.height);
 
-			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), moveSpeed, () =>
+			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), panelMoveSpeed, () =>
 			{
 				upPanel.SetActive(false);
 			}));
@@ -152,16 +124,19 @@ public class UI : MonoBehaviour
 
 
 
-	public static IEnumerator MovePanel(RectTransform panel, Vector2 targetPos, float moveSpeed, Action callback)
+	public IEnumerator MovePanel(RectTransform panel, Vector2 targetPos, float moveSpeed, Action callback)
 	{
-		if (moveSpeed == 0f)
+		if (moveSpeed <= 0f)
 			yield break;
+
+		float lastMoveSpeed = moveSpeed / 10;
+		float startMovingLinearDistance = (panel.anchoredPosition - targetPos).magnitude / 12;
 
 		while (panel.anchoredPosition != targetPos)
 		{
-			panel.anchoredPosition = Vector2.Lerp(panel.anchoredPosition, targetPos, moveSpeed * Time.deltaTime);
-			if ((panel.anchoredPosition - targetPos).magnitude < 0.06f)
-				panel.anchoredPosition = targetPos;
+			panel.anchoredPosition = (panel.anchoredPosition - targetPos).magnitude > startMovingLinearDistance
+				? panel.anchoredPosition = Vector2.Lerp(panel.anchoredPosition, targetPos, moveSpeed * Time.deltaTime)
+				: panel.anchoredPosition = Vector2.MoveTowards(panel.anchoredPosition, targetPos, lastMoveSpeed);
 
 			yield return new WaitForEndOfFrame();
 		}
