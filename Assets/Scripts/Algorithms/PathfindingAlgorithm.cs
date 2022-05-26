@@ -1,7 +1,4 @@
-﻿public delegate int[] FindBestPathDelegate(int[,] graph, int startNodeID, int endNodeID);
-public delegate int[] AlgorithmTeaching(int[,] inputGraph, int startNodeID, int endNodeID, out int[,] graphToShow, ref object customDataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight);
-
-public class PathfindingAlgorithm
+﻿public class PathfindingAlgorithm
 {
 	private const string DEFAULT_NAME = "NoName algorithm";
 
@@ -26,3 +23,7 @@ public class PathfindingAlgorithm
 		this.AlgorithmTeaching = algorithmTeaching;
 	}
 }
+
+public delegate int[] FindBestPathDelegate(int[,] graph, int startNodeID, int endNodeID);
+public delegate (int[] path, int[,] graphCopy, string message, int nodeToHighlight)[] AlgorithmTeaching(int[,] inputGraph, int startNodeID, int endNodeID);
+//public delegate int[] AlgorithmTeaching(int[,] inputGraph, int startNodeID, int endNodeID, out int[,] graphToShow, ref object customDataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight);

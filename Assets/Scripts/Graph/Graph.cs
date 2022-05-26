@@ -14,54 +14,44 @@ public class Graph : MonoBehaviour
 	[SerializeField] private UI ui;
 	[SerializeField] private OutputGraph outputGraph;
 
-	[Header("Ноды")]
+	[Header("Nodes")]
 	[SerializeField] private Node startNode;
 	[SerializeField] private Node endNode;
 	[SerializeField] private NodeColors nodeColors;
 
 	[HideInInspector] public LineDrawer lineDrawer;
 
-	private List<Node> nodes;
-	private Queue<LineRenderer> finalPathLines;
+	public List<Node> Nodes { get; private set; }
 
+	private RectTransform rectTransform;
+	private Queue<LineRenderer> finalPathLines;
 	private Coroutine algorithmTeachingRoutine;
 	private FindBestPathDelegate findBestPath_teaching;
-	private List<ValueTuple<Node, Action<Node>>> subscribedNodes = new List<ValueTuple<Node, Action<Node>>>();
+	private readonly List<ValueTuple<Node, Action<Node>>> subscribedNodes = new List<ValueTuple<Node, Action<Node>>>();
 
 	private bool teachingCanGo = true;
 
-
-
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
-	public Node StartNode
-	{
-		get => startNode;
-		private set => startNode = value;
-	}
-	public Node EndNode
-	{
-		get => endNode;
-		private set => endNode = value;
-	}
 
 
 
 	// Awake & Start
 	void Awake()
 	{
-		nodes = new List<Node>();
+		Nodes = new List<Node>();
 		finalPathLines = new Queue<LineRenderer>();
 		lineDrawer = GetComponent<LineDrawer>();
+		rectTransform = GetComponent<RectTransform>();
 
 		var children = GetComponentsInChildren<Node>();
-		nodes.AddRange(children);
+		Nodes.AddRange(children);
 	}
 
 	void Start()
 	{
 		// Make all connections two-sided
-		foreach (var node in nodes)
+		foreach (var node in Nodes)
 			foreach (var con in node.Connections)
 			{
 				if (!con.node.Connections.Any(x => x.node == node))
@@ -78,14 +68,16 @@ public class Graph : MonoBehaviour
 			for (int j = 0; j < len2; j++)
 				if (Matrix[i, j] != 0 && Matrix[i, j] != int.MaxValue)
 				{
-					var firstNode = nodes.Find(x => x.ID == i);
-					var secondNode = nodes.Find(x => x.ID == j);
+					var firstNode = Nodes.Find(x => x.ID == i);
+					var secondNode = Nodes.Find(x => x.ID == j);
 
 					lineDrawer.DrawLineWithText(firstNode, secondNode);
 				}
 
-		StartNode.MarkAs_StartNode(nodeColors.Start);
-		EndNode.MarkAs_EndNode(nodeColors.End);
+		startNode.MarkAs_StartNode(nodeColors.Start);
+		endNode.MarkAs_EndNode(nodeColors.End);
+
+		GraphScaler.FitGraphTo(rectTransform, Nodes);
 	}
 
 
@@ -94,8 +86,8 @@ public class Graph : MonoBehaviour
 	{
 		for (int i = 0; i < path.Length - 1; i++)
 		{
-			var fromPos = nodes.Find(x => x.ID == path[i]).transform.localPosition;
-			var toPos = nodes.Find(x => x.ID == path[i + 1]).transform.localPosition;
+			var fromPos = Nodes.Find(x => x.ID == path[i]).transform.localPosition;
+			var toPos = Nodes.Find(x => x.ID == path[i + 1]).transform.localPosition;
 
 			var line = lineDrawer.DrawLine(fromPos, toPos, color, color);
 			finalPathLines.Enqueue(line);
@@ -104,7 +96,7 @@ public class Graph : MonoBehaviour
 
 	private void ClearAllManualConnections()
 	{
-		foreach (var node in nodes)
+		foreach (var node in Nodes)
 			node.ClearManualConnection();
 	}
 
@@ -156,7 +148,7 @@ public class Graph : MonoBehaviour
 		var sw = new System.Diagnostics.Stopwatch();
 
 		sw.Start();
-		var path = algorithm(Matrix, StartNode.ID, EndNode.ID);
+		var path = algorithm(Matrix, startNode.ID, endNode.ID);
 		sw.Stop();
 
 		ScreenDebug.ShowTime(sw.ElapsedMilliseconds.ToString());
@@ -185,6 +177,7 @@ public class Graph : MonoBehaviour
 		if (algorithmTeachingRoutine != null)
 			StopCoroutine(algorithmTeachingRoutine);
 
+		teachingCanGo = true;
 		algorithmTeachingRoutine = StartCoroutine(AlgorithmTeaching(algorithm));
 	}
 
@@ -227,66 +220,67 @@ public class Graph : MonoBehaviour
 
 
 	private IEnumerator AlgorithmTeaching(AlgorithmTeaching algorithm)
-	{
-		int[,] graph = null;
-		object dataToSave = null;
-		string message = null;
+	{		
+		var connectionsQueue = new Queue<(int, int)>();
+		var results = algorithm((int[,])Matrix.Clone(), startNode.ID, endNode.ID);
 
-		var connectionsQueue = new Queue<ValueTuple<int, int>>();
+		// TODO: возможность перематывать туда-сюда по шагам
 
-		while (true)
+		for (int i = 0; i < results.Length; i++)
 		{
-			if (teachingCanGo)
+			while (!teachingCanGo)			
+				yield return new WaitForEndOfFrame();			
+
+			outputGraph.Show(results[i].graphCopy);
+			int[] path = results[i].path;
+
+			if (i == results.Length - 1)
 			{
-				outputGraph.Show(graph);
-
-				var path = algorithm((int[,])Matrix.Clone(), StartNode.ID, EndNode.ID, out graph, ref dataToSave, out message, out bool isAlgorithmFinished, out int nodeToHighlight);
-
-				if (isAlgorithmFinished)
-				{
-					ValidateAndPrintPath(path);
-					ui.HideAlgorithmTeachingPanel();
-					break;
-				}
-
-				if (path.Length < 2)
-				{
-					ScreenDebug.LogWarning("В процессе обучения получен путь длиной меньше 2.");
-					yield return new WaitForEndOfFrame();
-				}
+				ValidateAndPrintPath(path);
+				ui.HideAlgorithmTeachingPanel();
+				break;
+			}
+			
 
 
-
-				ClearNodesHighlighting();
-
-				HighlightNode(path[0], nodeColors.Start);
-				HighlightNode(path[path.Length - 1], nodeColors.End);
-				HighlightNode(nodeToHighlight, nodeColors.Middle);
-
-				if (path.Length > 2 && nodeToHighlight == -1 || path.Length > 3)
-				{
-					for (int i = 1; i < path.Length - 1; i++)
-						HighlightNode(path[i], nodeColors.Additional);
-				}
-
-
-
-				for (int nodeID = 1; nodeID < path.Length; nodeID++)
-				{
-					connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
-				}
-				ScreenDebug.ShowTeachingMessage(message);
-
-
-
-				//Debug.Log(PathToString(path));
-
-
-
-				ClearAllManualConnections();
-				MakePlayerConnectNodes(connectionsQueue);
+			if (path.Length < 2)
+			{
+				ScreenDebug.LogWarning("В процессе обучения получен путь длиной меньше 2.");
+				continue;
 			}
 
+
+
+			// Покраска узлов
+			ClearNodesHighlighting();
+
+			HighlightNode(path[0], nodeColors.Start);
+			HighlightNode(path[path.Length - 1], nodeColors.End);
+
+			if (path.Length > 3 || path.Length > 2 && results[i].nodeToHighlight == -1)
+			{
+				for (int j = 1; j < path.Length - 1; j++)
+					HighlightNode(path[j], nodeColors.Additional);
+			}
+			HighlightNode(results[i].nodeToHighlight, nodeColors.Middle);
+
+			
+
+			for (int nodeID = 1; nodeID < path.Length; nodeID++)
+			{
+				connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
+			}
+			ScreenDebug.ShowTeachingMessage(results[i].message);
+
+
+
+			// TODO: debug path ?
+			//Debug.Log(PathToString(path));
+
+
+
+			ClearAllManualConnections();
+			MakePlayerConnectNodes(connectionsQueue);
 			yield return new WaitForEndOfFrame();
 		}
 
@@ -296,8 +290,9 @@ public class Graph : MonoBehaviour
 		ClearNodesHighlighting();
 		ClearAllManualConnections();
 
-		if (!string.IsNullOrWhiteSpace(message))
-			ScreenDebug.ShowTeachingMessage(message);
+		string mes = results.Last().message;
+		if (!string.IsNullOrWhiteSpace(mes))
+			ScreenDebug.ShowTeachingMessage(mes);
 		else
 			ScreenDebug.ShowTeachingMessage("Работа алгоритма завершена.");
 	}
@@ -315,8 +310,8 @@ public class Graph : MonoBehaviour
 		int fromNodeID = twoNodes.Item1;
 		int toNodeID = twoNodes.Item2;
 
-		Node fromNode = nodes.Find(x => x.ID == fromNodeID);
-		Node toNode = nodes.Find(x => x.ID == toNodeID);
+		Node fromNode = Nodes.Find(x => x.ID == fromNodeID);
+		Node toNode = Nodes.Find(x => x.ID == toNodeID);
 
 		if (!ValidateStartEndNodes("Алгоритм обучения"))
 		{
@@ -347,7 +342,7 @@ public class Graph : MonoBehaviour
 	#region Node highlighting
 	public void ClearNodesHighlighting()
 	{
-		foreach (var node in nodes)
+		foreach (var node in Nodes)
 			node.ClearHighlighting();
 	}
 
@@ -358,7 +353,7 @@ public class Graph : MonoBehaviour
 	}
 	public void HighlightNode(int nodeID, Color color)
 	{
-		HighlightNode(nodes.Find(x => x.ID == nodeID), color);
+		HighlightNode(Nodes.Find(x => x.ID == nodeID), color);
 	}
 	#endregion
 
@@ -368,13 +363,13 @@ public class Graph : MonoBehaviour
 	{
 		bool validated = true;
 
-		if (StartNode == null)
+		if (startNode == null)
 		{
 			ScreenDebug.LogWarning(senderName + " | StartNode is null.");
 			validated = false;
 		}
 
-		if (EndNode == null)
+		if (endNode == null)
 		{
 			ScreenDebug.LogWarning(senderName + " | EndNode is null.");
 			validated = false;
@@ -387,8 +382,8 @@ public class Graph : MonoBehaviour
 	{
 		if (path == null
 			|| path.Length < 1
-			|| path[0] != StartNode.ID
-			|| path[path.Length - 1] != EndNode.ID)
+			|| path[0] != startNode.ID
+			|| path[path.Length - 1] != endNode.ID)
 			return false;
 
 		// Проверка на упоминание ноды всего раз
@@ -407,7 +402,7 @@ public class Graph : MonoBehaviour
 		// Проверка на допустимость маршрута (такие пути существуют)
 		for (int i = 0; i < path.Length - 1; i++)
 		{
-			if (!nodes.Find(x => x.ID == path[i]).Connections.Any(x => x.node.ID == path[i + 1]))
+			if (!Nodes.Find(x => x.ID == path[i]).Connections.Any(x => x.node.ID == path[i + 1]))
 				return false;
 		}
 
@@ -423,15 +418,15 @@ public class Graph : MonoBehaviour
 	private int[,] GetMatrix()
 	{
 		// Matrix Init
-		int[,] distancies = new int[nodes.Count, nodes.Count];
-		for (int i = 0; i < nodes.Count; i++)
-			for (int j = 0; j < nodes.Count; j++)
+		int[,] distancies = new int[Nodes.Count, Nodes.Count];
+		for (int i = 0; i < Nodes.Count; i++)
+			for (int j = 0; j < Nodes.Count; j++)
 			{
 				distancies[i, j] = i == j ? 0 : int.MaxValue;
 			}
 
 		// Matrix Fill
-		foreach (var node in nodes)
+		foreach (var node in Nodes)
 			foreach (var con in node.Connections)
 			{
 				distancies[node.ID, con.node.ID] = con.weight;

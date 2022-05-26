@@ -36,92 +36,62 @@ class FloydAlgorithm
 		return GetFullPath(fromNode, toNode, p);
 	}
 
-	int[] GetAlgorithmStep(int[,] inputGraph, int fromNode, int toNode, out int[,] outputGraph, ref object dataToSave, out string message, out bool isAlgorithmFinished, out int nodeToHighlight)
+	(int[] path, int[,] graphCopy, string message, int nodeToHighlight)[] GetAlgorithmStep(int[,] inputGraph, int fromNode, int toNode)
 	{
 		// Init
 		int nodeCount;
 		int[,] graph, p;
-		int k, i, j;
 
-		isAlgorithmFinished = false;
+		nodeCount = inputGraph.GetLength(0);
+		graph = (int[,])inputGraph.Clone();
 
-		if (dataToSave is DataToSave data)
-		{
-			graph = data.graph;
-			nodeCount = graph.GetLength(0);
+		p = new int[nodeCount, nodeCount];
+		for (int x = 0; x < nodeCount; x++)
+			for (int y = 0; y < nodeCount; y++)
+			{
+				p[x, y] = -1;
+			}
 
-			p = data.p;
-
-			k = data.k;
-			i = data.i;
-			j = data.j;
-		}
-		else
-		{
-			data = new DataToSave();
-			k = i = j = 0;
-
-			nodeCount = inputGraph.GetLength(0);
-			graph = (int[,])inputGraph.Clone();
-
-			p = new int[nodeCount, nodeCount];
-			for (int x = 0; x < nodeCount; x++)
-				for (int y = 0; y < nodeCount; y++)
-				{
-					p[x, y] = -1;
-				}
-		}
+		var output = new List<(int[], int[,], string, int)>();
+		int[] path;
+		string message;
+		int nodeToHighlight;
+		int[,] graphCopy;
 
 		// Algorithm
-		for (; k < nodeCount; k++, i = 0)
-			for (; i < nodeCount; i++, j = 0)
-				for (; j < nodeCount; j++)
+		for (int k = 0; k < nodeCount; k++)
+			for (int i = 0; i < nodeCount; i++)
+				for (int j = 0; j < nodeCount; j++)
 					if (graph[i, k] != int.MaxValue && graph[k, j] != int.MaxValue)
 						if ((graph[i, k] + graph[k, j]) < graph[i, j])
 						{
 							graph[i, j] = graph[i, k] + graph[k, j];
 							p[i, j] = k;
 
+							path = GetFullPath(i, j, p);
 							message = "Проведи линию из точки А в Б через выделенную точку.";
 							nodeToHighlight = k;
+							graphCopy = (int[,])graph.Clone();
 
-							SaveData(ref dataToSave);
-
-							outputGraph = graph;
-							return GetFullPath(i, j, p);
+							output.Add((path, graphCopy, message, nodeToHighlight));
 						}
-						else if (i != j)
-						{
-							message = "Проведи линию из точки А в Б.";
-							nodeToHighlight = -1;
+		//else if (i != j)
+		//{
+		//	string message = "Проведи линию из точки А в Б.";
+		//	int nodeToHighlight = -1;
 
-							SaveData(ref dataToSave);
+		//	int[,] outputGraph = (int[,])graph.Clone();
+		//	output.Add((GetFullPath(i, j, p), outputGraph, message, nodeToHighlight));
+		//}
 
-							outputGraph = graph;
-							return GetFullPath(i, j, p);
-						}
-
-		var path = GetFullPath(fromNode, toNode, p);
-
+		path = GetFullPath(fromNode, toNode, p);
 		message = "Работа алгоритма завершена.";
-		isAlgorithmFinished = true;
 		nodeToHighlight = -1;
+		graphCopy = (int[,])graph.Clone();
 
-		outputGraph = graph;
-		return path;
+		output.Add((path, graphCopy, message, nodeToHighlight));
 
-
-
-		void SaveData(ref object dataToSave)
-		{
-			data.i = i;
-			data.j = j + 1;
-			data.k = k;
-
-			data.p = p;
-			data.graph = graph;
-			dataToSave = data;
-		}
+		return output.ToArray();
 	}
 
 
@@ -148,15 +118,5 @@ class FloydAlgorithm
 		path.Add(toNode);
 
 		return path.ToArray();
-	}
-
-
-
-	class DataToSave
-	{
-		public int[,] graph;
-		public int[,] p;
-
-		public int k, i, j;
 	}
 }
