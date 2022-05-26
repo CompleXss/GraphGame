@@ -26,10 +26,7 @@ public class Graph : MonoBehaviour
 	private RectTransform rectTransform;
 	private Queue<LineRenderer> finalPathLines;
 	private Coroutine algorithmTeachingRoutine;
-	private FindBestPathDelegate findBestPath_teaching;
-	private readonly List<ValueTuple<Node, Action<Node>>> subscribedNodes = new List<ValueTuple<Node, Action<Node>>>();
-
-	private bool teachingCanGo = true;
+	private AlgorithmTeacher algorithmTeacher;
 
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
@@ -78,6 +75,8 @@ public class Graph : MonoBehaviour
 		endNode.MarkAs_EndNode(nodeColors.End);
 
 		GraphScaler.FitGraphTo(rectTransform, Nodes);
+
+		algorithmTeacher = new AlgorithmTeacher(this, outputGraph, panelMover, nodeColors);
 	}
 
 
@@ -94,7 +93,7 @@ public class Graph : MonoBehaviour
 		}
 	}
 
-	private void ClearAllManualConnections()
+	public void ClearAllManualConnections()
 	{
 		foreach (var node in Nodes)
 			node.ClearManualConnection();
@@ -119,7 +118,61 @@ public class Graph : MonoBehaviour
 		return str.ToString();
 	}
 
-	private bool ValidateAndPrintPath(int[] path)
+
+
+	/// <summary> Ищет и показывает лучший маршрут. </summary>
+	public void FindBestPath(FindBestPathDelegate algorithm)
+	{
+		if (algorithm == null)
+			return;
+
+		ClearFinalPath();
+
+		float startTime = Time.realtimeSinceStartup;
+		var path = algorithm(Matrix, startNode.ID, endNode.ID);
+
+		ScreenDebug.ShowTime(((Time.realtimeSinceStartup - startTime) * 1000f).ToString("f2"));
+
+		ValidateAndPrintPath(path);
+	}
+
+
+
+	/// <summary>
+	/// Начинает процесс "обучения". Если <paramref name="findBestPathDelegate"/> будет не null, появится возможность увидеть результ работы алгоритма после остановки обучения.
+	/// </summary>
+	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm, FindBestPathDelegate findBestPathDelegate)
+	{
+		if (algorithm == null)
+			return;
+
+		ScreenDebug.ClearTime();
+
+		ClearFinalPath();
+		panelMover.ShowAlgorithmTeachingPanel();
+
+		if (algorithmTeachingRoutine != null)
+			StopCoroutine(algorithmTeachingRoutine);
+
+		algorithmTeachingRoutine = StartCoroutine(algorithmTeacher.AlgorithmTeaching(algorithm, Matrix, startNode, endNode, findBestPathDelegate));
+	}
+
+
+
+	/// <summary>
+	/// Останавливает процесс "обучения", и если переданный ранее алгоритм поиска кратчайшего пути не null, показывает результат работы алгоритма.
+	/// </summary>
+	public void StopAlgorithmTeaching(bool findBestPath)
+	{
+		if (algorithmTeachingRoutine != null)
+			StopCoroutine(algorithmTeachingRoutine);
+
+		algorithmTeacher.StopAlgorithmTeaching(findBestPath);
+	}
+
+
+
+	public bool ValidateAndPrintPath(int[] path)
 	{
 		if (ValidateStartEndNodes() && ValidatePath(path))
 		{
@@ -136,230 +189,7 @@ public class Graph : MonoBehaviour
 		}
 	}
 
-
-
-	/// <summary> Ищет и показывает лучший маршрут. </summary>
-	public void FindBestPath(FindBestPathDelegate algorithm)
-	{
-		if (algorithm == null)
-			return;
-
-		ClearFinalPath();
-		var sw = new System.Diagnostics.Stopwatch();
-
-		sw.Start();
-		var path = algorithm(Matrix, startNode.ID, endNode.ID);
-		sw.Stop();
-
-		ScreenDebug.ShowTime(sw.ElapsedMilliseconds.ToString());
-
-		if (ValidateAndPrintPath(path))
-			ScreenDebug.Log("Поиск лучшего маршрута завершен!");
-	}
-
-
-
-	/// <summary>
-	/// Начинает процесс "обучения". Если <paramref name="findBestPathDelegate"/> будет не null, появится возможность увидеть результ работы алгоритма после остановки обучения.
-	/// </summary>
-	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm, FindBestPathDelegate findBestPathDelegate)
-	{
-		if (algorithm == null)
-			return;
-
-		ScreenDebug.ClearTime();
-
-		findBestPath_teaching = findBestPathDelegate;
-
-		ClearFinalPath();
-		panelMover.ShowAlgorithmTeachingPanel();
-
-		if (algorithmTeachingRoutine != null)
-			StopCoroutine(algorithmTeachingRoutine);
-
-		teachingCanGo = true;
-		algorithmTeachingRoutine = StartCoroutine(AlgorithmTeaching(algorithm));
-	}
-
-
-
-	/// <summary>
-	/// Останавливает процесс "обучения", и если переданный ранее алгоритм поиска кратчайшего пути не null, показывает результат работы алгоритма.
-	/// </summary>
-	public void StopAlgorithmTeaching(bool findBestPath)
-	{
-		if (algorithmTeachingRoutine != null)
-			StopCoroutine(algorithmTeachingRoutine);
-
-		ClearNodesHighlighting();
-
-		foreach (var tuple in subscribedNodes)
-		{
-			var node = tuple.Item1;
-			var method = tuple.Item2;
-
-			node.OnConnectedWith -= method;
-		}
-		teachingCanGo = true;
-
-		if (findBestPath && findBestPath_teaching != null)
-		{
-			FinaleAlgorithmTeachng(findBestPath_teaching);
-			findBestPath_teaching = null;
-		}
-	}
-
-	private void FinaleAlgorithmTeachng(FindBestPathDelegate findBestPathAlgorithm)
-	{
-		if (findBestPathAlgorithm != null)
-			FindBestPath(findBestPathAlgorithm);
-
-		panelMover.HideAlgorithmTeachingPanel();
-	}
-
-
-
-	private IEnumerator AlgorithmTeaching(AlgorithmTeaching algorithm)
-	{		
-		var connectionsQueue = new Queue<(int, int)>();
-		var results = algorithm((int[,])Matrix.Clone(), startNode.ID, endNode.ID);
-
-		// TODO: возможность перематывать туда-сюда по шагам
-
-		for (int i = 0; i < results.Length; i++)
-		{
-			while (!teachingCanGo)			
-				yield return new WaitForEndOfFrame();			
-
-			outputGraph.Show(results[i].graphCopy);
-			int[] path = results[i].path;
-
-			if (i == results.Length - 1)
-			{
-				ValidateAndPrintPath(path);
-				panelMover.HideAlgorithmTeachingPanel();
-				break;
-			}
-			
-
-
-			if (path.Length < 2)
-			{
-				ScreenDebug.LogWarning("В процессе обучения получен путь длиной меньше 2.");
-				continue;
-			}
-
-
-
-			// Покраска узлов
-			ClearNodesHighlighting();
-
-			HighlightNode(path[0], nodeColors.Start);
-			HighlightNode(path[path.Length - 1], nodeColors.End);
-
-			if (path.Length > 3 || path.Length > 2 && results[i].nodeToHighlight == -1)
-			{
-				for (int j = 1; j < path.Length - 1; j++)
-					HighlightNode(path[j], nodeColors.Additional);
-			}
-			HighlightNode(results[i].nodeToHighlight, nodeColors.Middle);
-
-			
-
-			for (int nodeID = 1; nodeID < path.Length; nodeID++)
-			{
-				connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
-			}
-			ScreenDebug.ShowTeachingMessage(results[i].message);
-
-
-
-			// TODO: debug path ?
-			//Debug.Log(PathToString(path));
-
-
-
-			ClearAllManualConnections();
-			MakePlayerConnectNodes(connectionsQueue);
-			yield return new WaitForEndOfFrame();
-		}
-
-
-
-		// Завершение работы
-		ClearNodesHighlighting();
-		ClearAllManualConnections();
-
-		string mes = results.Last().message;
-		if (!string.IsNullOrWhiteSpace(mes))
-			ScreenDebug.ShowTeachingMessage(mes);
-		else
-			ScreenDebug.ShowTeachingMessage("Работа алгоритма завершена.");
-	}
-
-
-
-	private void MakePlayerConnectNodes(Queue<ValueTuple<int, int>> connectionsQueue)
-	{
-		if (connectionsQueue.Count < 1)
-			return;
-
-		teachingCanGo = false;
-
-		var twoNodes = connectionsQueue.Dequeue();
-		int fromNodeID = twoNodes.Item1;
-		int toNodeID = twoNodes.Item2;
-
-		Node fromNode = Nodes.Find(x => x.ID == fromNodeID);
-		Node toNode = Nodes.Find(x => x.ID == toNodeID);
-
-		if (!ValidateStartEndNodes("Алгоритм обучения"))
-		{
-			teachingCanGo = true;
-			return;
-		}
-
-
-
-		fromNode.OnConnectedWith += CheckIfNodeIsRight;
-		subscribedNodes.Add((fromNode, CheckIfNodeIsRight));
-
-		void CheckIfNodeIsRight(Node conNode)
-		{
-			if (conNode != null && conNode.ID == toNodeID)
-			{
-				teachingCanGo = true;
-				fromNode.OnConnectedWith -= CheckIfNodeIsRight;
-				subscribedNodes.Remove((fromNode, CheckIfNodeIsRight));
-
-				MakePlayerConnectNodes(connectionsQueue);
-			}
-		}
-	}
-
-
-
-	#region Node highlighting
-	public void ClearNodesHighlighting()
-	{
-		foreach (var node in Nodes)
-			node.ClearHighlighting();
-	}
-
-	public void HighlightNode(Node node, Color color)
-	{
-		if (node != null)
-			node.Highlight(color);
-	}
-	public void HighlightNode(int nodeID, Color color)
-	{
-		HighlightNode(Nodes.Find(x => x.ID == nodeID), color);
-	}
-	#endregion
-
-
-
-	private bool ValidateStartEndNodes(string senderName = "")
+	public bool ValidateStartEndNodes(string senderName = "")
 	{
 		bool validated = true;
 
