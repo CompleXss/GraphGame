@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
+[RequireComponent(typeof(LineDrawer))]
+public class GraphZoomer : MonoBehaviour
 {
-	//[SerializeField] private Camera cam;
-	public Canvas canvas;
+	public Canvas canvas; // TODO: private ?
 	[SerializeField] private RectTransform dragZone;
 	[SerializeField]
 	private float
@@ -14,19 +12,16 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 		minZoomSize = 0.4f,
 		maxZoomSize = 3f;
 
-	//private RectTransform canvasRectTransform;
 	private List<Node> nodes;
-	private Graph graph;
+	private LineDrawer lineDrawer;
 	private InputMaster input;
-	//private RectTransform rt;
 	private Vector2 zoomCenter;
 
 
 
 	void Awake()
 	{
-		graph = GetComponent<Graph>();
-		//rt = GetComponent<RectTransform>(); // old
+		lineDrawer = GetComponent<LineDrawer>();
 
 		// Поиск всех детей
 		nodes = new List<Node>();
@@ -39,12 +34,7 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 	}
 	void Start()
 	{
-		//canvasRectTransform = canvas.GetComponent<RectTransform>(); // old
 		zoomCenter = dragZone.sizeDelta / 2;
-
-		// old
-		//zoomCenter = dragZone.anchoredPosition + (dragZone.rect.size - canvasRectTransform.rect.size) / 2;
-		//transform.localPosition = ClampPosition(transform.localPosition);
 	}
 	void OnEnable()
 	{
@@ -54,44 +44,6 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 	{
 		input.UI.Disable();
 	}
-
-
-
-	// old
-	//private Vector2 GetScreenSizeOfRT()
-	//{
-	//	var rect = rt.rect;
-	//	var scale = rt.localScale;
-
-	//	var x = rect.width * scale.x;
-	//	var y = rect.height * scale.y;
-
-	//	return new Vector2(x, y);
-	//}
-
-	//private void CenterRtIfNeeded()
-	//{
-	//	var rtScreenSize = GetScreenSizeOfRT();
-	//	var dragZoneSize = dragZone.rect.size;
-
-	//	// Отцентровка по X
-	//	if (rtScreenSize.x < dragZoneSize.x)
-	//	{
-	//		var rtPos = rt.localPosition;
-	//		float x = zoomCenter.x;
-
-	//		rt.localPosition = new Vector3(x, rtPos.y, rtPos.z);
-	//	}
-
-	//	// Отцентровка по Y
-	//	if (rtScreenSize.y < dragZoneSize.y)
-	//	{
-	//		var rtPos = rt.localPosition;
-	//		float y = zoomCenter.y;
-
-	//		rt.localPosition = new Vector3(rtPos.x, y, rtPos.z);
-	//	}
-	//}
 
 
 
@@ -137,10 +89,6 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 
 		ZoomNodes(size / transform.localScale.x);
 		ZoomAround(zoomCenter + GetCursorOffset(), size);
-
-		// old
-		//transform.localPosition = ClampPosition(transform.localPosition);
-		//CenterRtIfNeeded();
 	}
 
 	private void ZoomAround(Vector2 point, float size)
@@ -167,8 +115,6 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 			Vector3 localScale = node.transform.localScale;
 			Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
 			node.transform.localScale = newScale;
-
-			//node.Zoom(scaleFactor);
 		}
 
 		ZoomTexts(scaleFactor);
@@ -176,7 +122,7 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 
 	private void ZoomTexts(float scaleFactor)
 	{
-		foreach (var text in graph.lineDrawer.texts)
+		foreach (var text in lineDrawer.texts)
 		{
 			Vector3 localScale = text.localScale;
 			Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
@@ -209,7 +155,6 @@ public class GraphZoomer : MonoBehaviour/*, IDragHandler*/
 		ref var cursorPos = ref rawCursorPos;
 
 		cursorPos /= canvas.scaleFactor;
-		//cursorPos -= canvasRectTransform.rect.size / 2; // Перемещение нуля в центр (old)
 		cursorPos -= dragZone.anchoredPosition; // Переход к локальным кордам dragZone'ы
 
 		return cursorPos;
