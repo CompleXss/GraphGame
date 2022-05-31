@@ -19,17 +19,19 @@ public class Graph : MonoBehaviour
 	[SerializeField] private Node endNode;
 	[SerializeField] private NodeColors nodeColors;
 
-	[HideInInspector] public LineDrawer lineDrawer;
 
-	public List<Node> Nodes { get; private set; }
-
-	private RectTransform rectTransform;
-	private Queue<LineRenderer> finalPathLines;
-	private Coroutine algorithmTeachingRoutine;
-	private AlgorithmTeacher algorithmTeacher;
 
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
+	public List<Node> Nodes { get; private set; }
+
+
+
+	// private
+	private LineDrawer lineDrawer;
+	private Queue<LineRenderer> finalPathLines;
+	private Coroutine algorithmTeachingRoutine;
+	private AlgorithmTeacher algorithmTeacher;
 
 
 
@@ -39,10 +41,14 @@ public class Graph : MonoBehaviour
 		Nodes = new List<Node>();
 		finalPathLines = new Queue<LineRenderer>();
 		lineDrawer = GetComponent<LineDrawer>();
-		rectTransform = GetComponent<RectTransform>();
 
 		var children = GetComponentsInChildren<Node>();
 		Nodes.AddRange(children);
+
+		// Set IDs
+		var sortedNodes = Nodes.OrderBy(x => x.transform.localPosition.x).ToArray();
+		for (int i = 0; i < sortedNodes.Length; i++)
+			sortedNodes[i].InitID(i);
 	}
 
 	void Start()
@@ -74,9 +80,8 @@ public class Graph : MonoBehaviour
 		startNode.MarkAs_StartNode(nodeColors.Start);
 		endNode.MarkAs_EndNode(nodeColors.End);
 
-		GraphScaler.FitGraphTo(rectTransform, Nodes);
-
-		algorithmTeacher = new AlgorithmTeacher(this, outputGraph, panelMover, nodeColors);
+		algorithmTeacher = new AlgorithmTeacher(graph: this, outputGraph, panelMover, nodeColors);
+		GraphScaler.FitGraphTo(GetComponent<RectTransform>(), Nodes);
 	}
 
 

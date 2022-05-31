@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 using UnityEngine;
 using TMPro;
@@ -10,7 +9,6 @@ using UnityEngine.EventSystems;
 
 public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler
 {
-	[SerializeField] private int id;
 	[SerializeField] private List<Connection> connections;
 	[SerializeField] private LineRenderer chooseLinePrefab;
 
@@ -20,49 +18,62 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 
 
+	private int id;
+	public int ID
+	{
+		get => id;
+		private set
+		{
+			id = value;
+			gameObject.name = "Node " + id;
+			IDBox.text = id.ToString();
+		}
+	}
+
 	// Public
-	public int ID { get; private set; }
+	/// <summary> Are initialized in Awake. Get it after Awake only! </summary>
+	public List<Connection> Connections => connections;
 	public RectTransform RectTransform { get; private set; }
-	public BindingList<Connection> Connections { get; private set; }
 	public Node ConnectedTo { get; private set; }
 	public event Action<Node> OnConnectedWith;
 
 
 
-	// Private variables
+	// Private variables	
 	private GraphZoomer graphMover;
-	//private static int objectsCount = 0;
-	private InputMaster input;
+	private static int objectsCount = 0;
 	private Transform parent;
 	private LineRenderer line;
 	private bool isHighlighted;
+	private bool isIdInitialized;
 
 
 
 	void Awake()
 	{
-		//ID = objectsCount++;
-		ID = id;
-		gameObject.name = "Node " + ID;
-		IDBox.text = ID.ToString();
+		if (ID == 0)
+			ID = objectsCount++;
 
 		RectTransform = GetComponent<RectTransform>();
 
-		input = new InputMaster();
 		parent = gameObject.GetComponentInParent<Graph>().transform;
 		graphMover = GetComponentInParent<GraphZoomer>();
 
 		// Init connections
 		connections.RemoveAll(x => x.node == this);
-		Connections = new BindingList<Connection>(connections);
 	}
-	void OnEnable()
+
+	/// <summary> При попытке вызвать повторно ничего не произойдет. </summary>
+	public void InitID(int value)
 	{
-		input.UI.Enable();
-	}
-	void OnDisable()
-	{
-		input.UI.Disable();
+		if (isIdInitialized)
+		{
+			Debug.LogWarning($"Попытка установить NodeID второй раз | Текущий ID: {ID} | ID который хотели установить: {value}");
+			return;
+		}
+
+		ID = value;
+		isIdInitialized = true;
 	}
 
 
@@ -139,7 +150,6 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 
 
-
 	public void MarkAs_StartNode(Color color)
 	{
 		ring.color = color;
@@ -148,7 +158,6 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	{
 		ring.color = color;
 	}
-
 
 	public void Highlight(Color color)
 	{
@@ -173,33 +182,11 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 
 		isHighlighted = false;
 	}
-	public void RemoveHighlighting(Color colorToRemove)
+	public void ClearHighlighting(Color colorToRemove)
 	{
 		if (circle.color == colorToRemove)
 			ClearHighlighting();
 	}
-
-
-
-	///// <summary> Zooms node itself and lineText, attached to it. </summary>
-	//public void Zoom(float scaleFactor)
-	//{
-	//	// Zoom node itself
-	//	Vector3 localScale = transform.localScale;
-	//	Vector3 newScale = new Vector3(localScale.x / scaleFactor, localScale.y / scaleFactor, localScale.z);
-	//	transform.localScale = newScale;
-
-	//	//if (lineText == null)
-	//	//	return;
-
-	//	//// Zoom lineText
-	//	//Vector3 textLocalScale = lineText.transform.localScale;
-	//	//Vector3 newTextScale = new Vector3(textLocalScale.x / scaleFactor, textLocalScale.y / scaleFactor, textLocalScale.z);
-	//	//lineText.transform.localScale = newTextScale;
-	//}
-
-
-	// Gizmos
 
 
 
