@@ -8,11 +8,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-[RequireComponent(typeof(LineDrawer))]
+[RequireComponent(typeof(LineDrawer), typeof(AlgorithmTeacher))]
 public class Graph : MonoBehaviour
 {
 	[SerializeField] private PanelMover panelMover;
-	[SerializeField] private OutputGraph outputGraph;
 
 	[Header("Nodes")]
 	[SerializeField] private Node startNode;
@@ -24,14 +23,13 @@ public class Graph : MonoBehaviour
 	/// <summary> Is initialized in Start. Get it after Start only! </summary>
 	public int[,] Matrix { get; private set; }
 	public List<Node> Nodes { get; private set; }
+	public AlgorithmTeacher AlgorithmTeacher { get; private set; }
 
 
 
 	// private
 	private LineDrawer lineDrawer;
 	private Queue<LineRenderer> finalPathLines;
-	private Coroutine algorithmTeachingRoutine;
-	private AlgorithmTeacher algorithmTeacher;
 
 
 
@@ -41,6 +39,7 @@ public class Graph : MonoBehaviour
 		Nodes = new List<Node>();
 		finalPathLines = new Queue<LineRenderer>();
 		lineDrawer = GetComponent<LineDrawer>();
+		AlgorithmTeacher = GetComponent<AlgorithmTeacher>();
 
 		var children = GetComponentsInChildren<Node>();
 		Nodes.AddRange(children);
@@ -80,7 +79,6 @@ public class Graph : MonoBehaviour
 		startNode.MarkAs_StartNode(nodeColors.Start);
 		endNode.MarkAs_EndNode(nodeColors.End);
 
-		algorithmTeacher = new AlgorithmTeacher(graph: this, outputGraph, panelMover, nodeColors);
 		GraphScaler.FitGraphTo(GetComponent<RectTransform>(), Nodes);
 	}
 
@@ -156,10 +154,7 @@ public class Graph : MonoBehaviour
 		ClearFinalPath();
 		panelMover.ShowAlgorithmTeachingPanel();
 
-		if (algorithmTeachingRoutine != null)
-			StopCoroutine(algorithmTeachingRoutine);
-
-		algorithmTeachingRoutine = StartCoroutine(algorithmTeacher.AlgorithmTeaching(algorithm, Matrix, startNode, endNode, findBestPathDelegate));
+		AlgorithmTeacher.StartAlgorithmTeaching(algorithm, Matrix, startNode, endNode, findBestPathDelegate);
 	}
 
 
@@ -169,10 +164,7 @@ public class Graph : MonoBehaviour
 	/// </summary>
 	public void StopAlgorithmTeaching(bool findBestPath)
 	{
-		if (algorithmTeachingRoutine != null)
-			StopCoroutine(algorithmTeachingRoutine);
-
-		algorithmTeacher.StopAlgorithmTeaching(findBestPath);
+		AlgorithmTeacher.StopAlgorithmTeaching(findBestPath);
 	}
 
 

@@ -16,6 +16,12 @@ public class MatrixCell : MonoBehaviour
 		set => image.color = value;
 	}
 
+	public Color TextColor
+	{
+		get => textMeshPro.color;
+		set => textMeshPro.color = value;
+	}
+
 	public string Text
 	{
 		get => textMeshPro.text;

@@ -4,36 +4,62 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
-public class AlgorithmTeacher
+public class AlgorithmTeacher : MonoBehaviour
 {
-	private FindBestPathDelegate findBestPath_method;
-	private readonly List<(Node node, Action<Node> method)> subscribedNodes;
+	[SerializeField] private Graph graph;
+	[SerializeField] private OutputGraph outputGraph;
+	[SerializeField] private Slider stepSlider;
+	[SerializeField] private TextMeshProUGUI stepNumber;
+	[SerializeField] private PanelMover panelMover;
+	[SerializeField] private NodeColors nodeColors;
 
-	private readonly Graph graph;
-	private readonly OutputGraph outputGraph;
-	private readonly NodeColors nodeColors;
-	private readonly PanelMover panelMover;
+	private Coroutine routine;
+	private FindBestPathDelegate findBestPath_method;
+	private List<(Node node, Action<Node> method)> subscribedNodes;
+	private Queue<(int, int)> connectionsQueue;
 
 	private bool teachingCanGo = true;
 
-
-
-	// Constructor
-	public AlgorithmTeacher(Graph graph, OutputGraph outputGraph, PanelMover panelMover, NodeColors nodeColors)
+	private int step;
+	private int Step
 	{
-		this.graph = graph;
-		this.outputGraph = outputGraph;
-		this.panelMover = panelMover;
-		this.nodeColors = nodeColors;
+		get => step;
+		set
+		{
+			step = value;
+			stepNumber.text = $"{value + 1}/{stepSlider.maxValue + 1}";
 
+			stepSlider.SetValueWithoutNotify(value);
+		}
+	}
+
+
+
+	// Awake
+	private void Awake()
+	{
 		subscribedNodes = new List<(Node, Action<Node>)>();
 	}
 
 
 
+	#region Start / Stop
+	public void StartAlgorithmTeaching(AlgorithmTeaching algorithm, int[,] matrix, Node startNode, Node endNode, FindBestPathDelegate findBestPath_method)
+	{
+		if (routine != null)
+			StopCoroutine(routine);
+
+		routine = StartCoroutine(AlgorithmTeaching(algorithm, matrix, startNode, endNode, findBestPath_method));
+	}
+
 	public void StopAlgorithmTeaching(bool findBestPath)
 	{
+		if (routine != null)
+			StopCoroutine(routine);
+
 		ClearNodesHighlighting();
 
 		foreach (var tuple in subscribedNodes)
@@ -59,28 +85,37 @@ public class AlgorithmTeacher
 
 		panelMover.HideAlgorithmTeachingPanel();
 	}
+	#endregion
 
 
 
-	public IEnumerator AlgorithmTeaching(AlgorithmTeaching algorithm, int[,] matrix, Node startNode, Node endNode, FindBestPathDelegate findBestPath_method)
+	private IEnumerator AlgorithmTeaching(AlgorithmTeaching algorithm, int[,] matrix, Node startNode, Node endNode, FindBestPathDelegate findBestPath_method)
 	{
 		this.findBestPath_method = findBestPath_method;
 		teachingCanGo = true;
 
-		var connectionsQueue = new Queue<(int, int)>();
+		connectionsQueue = new Queue<(int, int)>();
 		var results = algorithm((int[,])matrix.Clone(), startNode.ID, endNode.ID);
 
-		// TODO: возможность перематывать туда-сюда по шагам
+		stepSlider.maxValue = results.Length - 2; // Последний шаг == полный путь (выход из алгоритма), поэтому его нельзя выбрать на слайдере
 
-		for (int i = 0; i < results.Length; i++)
+
+
+		for (Step = -1; Step < results.Length;)
 		{
 			while (!teachingCanGo)
 				yield return new WaitForEndOfFrame();
 
-			outputGraph.Show(results[i].graphCopy);
-			int[] path = results[i].path;
+			Step++;
 
-			if (i == results.Length - 1)
+			if (Step > 0)
+				outputGraph.Show(results[Step - 1].graphCopy);
+			else
+				outputGraph.Show(matrix);
+
+			int[] path = results[Step].path;
+
+			if (Step == results.Length - 1)
 			{
 				graph.ValidateAndPrintPath(path);
 				panelMover.HideAlgorithmTeachingPanel();
@@ -91,7 +126,7 @@ public class AlgorithmTeacher
 
 			if (path.Length < 2)
 			{
-				ScreenDebug.LogWarning("В процессе обучения получен путь длиной меньше 2.");
+				ScreenDebug.LogWarning("Во время обучения получен путь длиной меньше 2");
 				continue;
 			}
 
@@ -103,12 +138,12 @@ public class AlgorithmTeacher
 			HighlightNode(path[0], nodeColors.Start);
 			HighlightNode(path[path.Length - 1], nodeColors.End);
 
-			if (path.Length > 3 || path.Length > 2 && results[i].nodeToHighlight == -1)
+			if (path.Length > 3 || path.Length > 2 && results[Step].nodeToHighlight == -1)
 			{
 				for (int j = 1; j < path.Length - 1; j++)
 					HighlightNode(path[j], nodeColors.Additional);
 			}
-			HighlightNode(results[i].nodeToHighlight, nodeColors.Middle);
+			HighlightNode(results[Step].nodeToHighlight, nodeColors.Middle);
 
 
 
@@ -116,7 +151,7 @@ public class AlgorithmTeacher
 			{
 				connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
 			}
-			ScreenDebug.ShowTeachingMessage(results[i].message);
+			ScreenDebug.ShowTeachingMessage(results[Step].message);
 
 
 
@@ -135,6 +170,7 @@ public class AlgorithmTeacher
 		// Завершение работы
 		ClearNodesHighlighting();
 		graph.ClearAllManualConnections();
+		connectionsQueue.Clear();
 
 		string mes = results.Last().message;
 		if (!string.IsNullOrWhiteSpace(mes))
@@ -143,7 +179,7 @@ public class AlgorithmTeacher
 			ScreenDebug.ShowTeachingMessage("Работа алгоритма завершена.");
 	}
 
-	private void MakePlayerConnectNodes(Queue<ValueTuple<int, int>> connectionsQueue)
+	private void MakePlayerConnectNodes(Queue<(int, int)> connectionsQueue)
 	{
 		if (connectionsQueue.Count < 1)
 			return;
@@ -181,7 +217,24 @@ public class AlgorithmTeacher
 		}
 	}
 
+	public void StepSlider_OnValueChanged()
+	{
+		if (step == (int)stepSlider.value)
+			return;
 
+		step = (int)stepSlider.value - 1;
+		stepNumber.text = step.ToString();
+
+		foreach (var (node, method) in subscribedNodes)
+			node.OnConnectedWith -= method;
+
+		subscribedNodes.Clear();
+		connectionsQueue.Clear();
+
+		teachingCanGo = true;
+	}
+
+	// TODO: зум работает неправильно?
 
 	#region Node highlighting
 	public void ClearNodesHighlighting()

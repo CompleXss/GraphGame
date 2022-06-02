@@ -16,11 +16,12 @@ public class OutputGraph : MonoBehaviour
 	[Header("Colors")]
 	[SerializeField] private Color headerCellsColor;
 	[SerializeField] private Color insideCellsColor;
+	[SerializeField] private Color diagonalTextColor;
 
 	private GridLayoutGroup grid;
 	private RectTransform rectTransform;
 	private MatrixCell[,] cells;
-	private int matrixSize;
+	private Vector2Int matrixSize;
 
 	void Awake()
 	{
@@ -28,81 +29,90 @@ public class OutputGraph : MonoBehaviour
 		rectTransform = GetComponent<RectTransform>();
 	}
 
+	// TODO: Подстветка текста клеток красным ?
 
 
-	public void CreateGrid(int[,] graph)
+	private void CreateGrid(int[,] graph)
 	{
-		if (graph == null || graph.Length < 1)
-			return;
+		DeleteGrid();
 
-		matrixSize = graph.GetLength(0);
+		matrixSize.x = graph.GetLength(1);
+		matrixSize.y = graph.GetLength(0);
+
 		SetRTSize(matrixSize);
-		cells = new MatrixCell[matrixSize, matrixSize];
+		cells = new MatrixCell[matrixSize.y, matrixSize.x];
 
 
 
-		// Cells
+		// // Cells // //
 		var emptyCell = Instantiate(cellPrefab, transform);
 		emptyCell.Color = headerCellsColor;
 		emptyCell.Text = "";
 
 		// First line
-		for (int i = 0; i < matrixSize; i++)
+		for (int col = 0; col < matrixSize.x; col++)
 		{
 			var cell = Instantiate(cellPrefab, transform);
 			cell.Color = headerCellsColor;
-			cell.Text = i.ToString();
+			cell.Text = col.ToString();
 		}
 
 		// Other lines
-		for (int line = 0; line < matrixSize; line++)
+		for (int line = 0; line < matrixSize.y; line++)
 		{
 			var firstCell = Instantiate(cellPrefab, transform);
 			firstCell.Color = headerCellsColor;
 			firstCell.Text = line.ToString();
 
-			for (int col = 0; col < matrixSize; col++)
+			for (int col = 0; col < matrixSize.x; col++)
 			{
 				var cell = Instantiate(cellPrefab, transform);
-				cells[line, col] = cell;
-
 				cell.Color = insideCellsColor;
 
-				cell.Text = graph[line, col] == int.MaxValue
-					? "inf"
-					: graph[line, col].ToString();
+				if (line == col)
+					cell.TextColor = diagonalTextColor;
+
+				cells[line, col] = cell;
 			}
 		}
 
 		noGraphText.enabled = false;
 	}
 
-	private void SetRTSize(int matrixSize)
+	private void SetRTSize(Vector2Int matrixSize)
 	{
-		Vector2 size = (matrixSize + 1) * (grid.cellSize + grid.spacing);
+		Vector2 size = grid.cellSize + grid.spacing;
+		size.x *= matrixSize.x + 1;
+		size.y *= matrixSize.y + 1;
+
+		size -= grid.spacing; // Чтобы не было лишнего спейсинга в конце
 
 		rectTransform.sizeDelta = size;
 	}
 
 
 
+	/// <summary> Отображает матрицу смежности в виде таблицы. </summary>
 	public void Show(int[,] graph)
 	{
 		if (graph == null)
 			return;
 
-		if (matrixSize == 0 || cells == null || cells.GetLength(0) < matrixSize)
+		if (graph.GetLength(0) < 1 || graph.GetLength(1) < 1)
 		{
-			CreateGrid(graph);
+			ScreenDebug.LogWarning("Показ матрицы: входной параметр недействителен.");
 			return;
 		}
-		if (graph.Length < matrixSize)
-			return;
 
 
 
-		for (int line = 0; line < matrixSize; line++)
-			for (int col = 0; col < matrixSize; col++)
+		if (cells == null || matrixSize == Vector2Int.zero || graph.GetLength(0) != matrixSize.y || graph.GetLength(1) != matrixSize.x)
+		{
+			CreateGrid(graph);
+		}
+
+		for (int line = 0; line < matrixSize.y; line++)
+			for (int col = 0; col < matrixSize.x; col++)
 			{
 				cells[line, col].Text = graph[line, col] == int.MaxValue
 					? "inf"
@@ -114,7 +124,7 @@ public class OutputGraph : MonoBehaviour
 	{
 		noGraphText.enabled = true;
 
-		matrixSize = 0;
+		matrixSize = Vector2Int.zero;
 		cells = null;
 
 		foreach (Transform obj in transform)
