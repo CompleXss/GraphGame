@@ -1,8 +1,5 @@
-﻿using System;
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 [RequireComponent(typeof(GridLayoutGroup), typeof(RectTransform))]
 public class OutputGraph : MonoBehaviour
@@ -26,7 +23,6 @@ public class OutputGraph : MonoBehaviour
 		rectTransform = GetComponent<RectTransform>();
 	}
 
-	// TODO: Подстветка текста клеток красным ?
 
 
 	private void CreateGrid(int[,] graph)

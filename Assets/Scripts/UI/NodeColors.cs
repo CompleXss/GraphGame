@@ -1,6 +1,4 @@
-﻿using System;
-
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "Node Colors", menuName = "Node Colors")]
 public class NodeColors : ScriptableObject
