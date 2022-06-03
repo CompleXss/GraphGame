@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.Events;
 
 public class ScriptLoaderObj : MonoBehaviour
 {
@@ -75,8 +72,8 @@ public class ScriptLoaderObj : MonoBehaviour
 		alg.SetSubButtonVisibleState(alg.FindBestPathBtn, true);
 
 		// AlgorithmTeaching
-		// TODO: дейкстра algorithmTeachingBtn .visible = true
-		alg.SetSubButtonVisibleState(alg.AlgorithmTeachingBtn, false);
+		alg.AlgorithmTeachingBtn.onClick.AddListener(() => graph.StartAlgorithmTeaching(DijkstraAlgorithm.GetAlgorithmStep, DijkstraAlgorithm.FindBestPath));
+		alg.SetSubButtonVisibleState(alg.AlgorithmTeachingBtn, true);
 	}
 
 	private void DestroyAlgButtons()

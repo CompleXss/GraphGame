@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -11,11 +10,9 @@ using Microsoft.CodeAnalysis.Emit;
 
 using UnityEngine;
 
-
-
 public class ScriptLoader
 {
-	private readonly string folderPath = Application.dataPath + "/PathFinding";
+	private readonly string folderPath = Application.streamingAssetsPath;
 
 
 
@@ -23,11 +20,15 @@ public class ScriptLoader
 	{
 		var reader = new FileReader();
 		var files = reader.LoadCodeFilesFromFolder(folderPath);
+		var dllFileNames = reader.GetFileNamesInFolder(folderPath, "*.dll");
 
 		var algorithms = new List<PathfindingAlgorithm>();
 
 		foreach (var file in files)
 			algorithms.AddRange(GetAlgorithmsFromText(file));
+
+		foreach (var dll in dllFileNames)
+			algorithms.AddRange(GetAlgorithmsFromAssembly(Assembly.LoadFrom(dll)));
 
 		return algorithms.ToArray();
 	}
@@ -42,8 +43,11 @@ public class ScriptLoader
 		if (assembly == null)
 			return new PathfindingAlgorithm[0];
 
+		return GetAlgorithmsFromAssembly(assembly);
+	}
 
-
+	private PathfindingAlgorithm[] GetAlgorithmsFromAssembly(Assembly assembly)
+	{
 		var algorithms = new List<PathfindingAlgorithm>();
 
 		foreach (var t in assembly.DefinedTypes)
@@ -54,7 +58,7 @@ public class ScriptLoader
 
 			string[] logs = new string[3];
 
-			bool nameIsNull = false;
+			bool nameIsNull;
 
 			var name = GetPropertyValueOrNull(assembly, t, "Name", out logs[0]);
 			if (nameIsNull = string.IsNullOrWhiteSpace(name))

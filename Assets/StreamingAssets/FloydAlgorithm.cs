@@ -9,11 +9,10 @@ class FloydAlgorithm
 
 
 
-	int[] FindBestPath(int[,] inputGraph, int fromNode, int toNode)
+	int[] FindBestPath(int[,] graph, int fromNode, int toNode)
 	{
-		// Init
-		int nodeCount = inputGraph.GetLength(0);
-		int[,] graph = (int[,])inputGraph.Clone();
+		// Инициализация
+		int nodeCount = graph.GetLength(0);
 
 		int[,] p = new int[nodeCount, nodeCount];
 		for (int x = 0; x < nodeCount; x++)
@@ -22,7 +21,7 @@ class FloydAlgorithm
 				p[x, y] = -1;
 			}
 
-		// Algorithm
+		// Сам алгоритм
 		for (int k = 0; k < nodeCount; k++)
 			for (int i = 0; i < nodeCount; i++)
 				for (int j = 0; j < nodeCount; j++)
@@ -38,7 +37,7 @@ class FloydAlgorithm
 
 	(int[] path, int[,] graphCopy, string message, int nodeToHighlight)[] GetAlgorithmStep(int[,] inputGraph, int fromNode, int toNode)
 	{
-		// Init
+		// Инициализация
 		int nodeCount;
 		int[,] graph, p;
 
@@ -52,13 +51,13 @@ class FloydAlgorithm
 				p[x, y] = -1;
 			}
 
-		var output = new List<(int[], int[,], string, int)>();
+		var output = new List<(int[] path, int[,] graphCopy, string message, int nodeToHighlight)>();
 		int[] path;
 		string message;
 		int nodeToHighlight;
 		int[,] graphCopy;
 
-		// Algorithm
+		// Сам алгоритм
 		for (int k = 0; k < nodeCount; k++)
 			for (int i = 0; i < nodeCount; i++)
 				for (int j = 0; j < nodeCount; j++)
@@ -68,26 +67,20 @@ class FloydAlgorithm
 							graph[i, j] = graph[i, k] + graph[k, j];
 							p[i, j] = k;
 
+							// Вывод данных для отображения
 							path = GetFullPath(i, j, p);
-							message = "Проведи линию из точки А в Б через выделенную точку.";
+							graphCopy = (int[,])graph.Clone(); // Обязательно именно копировать массив!
+							message = $"Проведи линию из точки {i} в {j} через выделенную точку.";
 							nodeToHighlight = k;
-							graphCopy = (int[,])graph.Clone();
 
 							output.Add((path, graphCopy, message, nodeToHighlight));
 						}
-		//else if (i != j)
-		//{
-		//	string message = "Проведи линию из точки А в Б.";
-		//	int nodeToHighlight = -1;
 
-		//	int[,] outputGraph = (int[,])graph.Clone();
-		//	output.Add((GetFullPath(i, j, p), outputGraph, message, nodeToHighlight));
-		//}
-
+		// Получен итоговый путь
 		path = GetFullPath(fromNode, toNode, p);
+		graphCopy = (int[,])graph.Clone(); // Обязательно именно копировать массив!
 		message = "Работа алгоритма завершена.";
 		nodeToHighlight = -1;
-		graphCopy = (int[,])graph.Clone();
 
 		output.Add((path, graphCopy, message, nodeToHighlight));
 

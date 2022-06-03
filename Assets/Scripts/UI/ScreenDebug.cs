@@ -8,9 +8,12 @@ public class ScreenDebug : MonoBehaviour
 	[SerializeField] private DebugEntry newEntryPrefab;
 	[SerializeField] private Transform whereToSpawnEntry;
 
+	[Header("Up panel")]
+	[SerializeField] private TextMeshProUGUI timeBox;
+	[SerializeField] private TextMeshProUGUI resultBox;
+
 	[Header("Teaching")]
 	[SerializeField] private TextMeshProUGUI messageBox;
-	[SerializeField] private TextMeshProUGUI timeBox;
 
 	[Header("Icons")]
 	[SerializeField] private Sprite messageSprite;
@@ -68,6 +71,15 @@ public class ScreenDebug : MonoBehaviour
 	public static void ClearTime()
 	{
 		instance.timeBox.text = "-";
+	}
+
+	public static void ShowResult(string number)
+	{
+		instance.resultBox.text = number;
+	}
+	public static void ClearResult()
+	{
+		instance.resultBox.text = "-";
 	}
 
 

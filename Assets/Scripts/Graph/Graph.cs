@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Text;
 
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 [RequireComponent(typeof(LineDrawer), typeof(AlgorithmTeacher))]
 public class Graph : MonoBehaviour
@@ -25,9 +23,32 @@ public class Graph : MonoBehaviour
 	public List<Node> Nodes { get; private set; }
 	public AlgorithmTeacher AlgorithmTeacher { get; private set; }
 
+	public int[,] MatrixCopy => (int[,])Matrix.Clone();
+
+	public Node StartNode
+	{
+		get => startNode;
+		set
+		{
+			startNode.UnMarkAs_StartEnd();
+			startNode = value;
+			startNode.MarkAs_StartNode(nodeColors.Start);
+		}
+	}
+	public Node EndNode
+	{
+		get => endNode;
+		set
+		{
+			endNode.UnMarkAs_StartEnd();
+			endNode = value;
+			endNode.MarkAs_EndNode(nodeColors.End);
+		}
+	}
 
 
-	// private
+
+	// Private
 	private LineDrawer lineDrawer;
 	private Queue<LineRenderer> finalPathLines;
 
@@ -121,6 +142,20 @@ public class Graph : MonoBehaviour
 		return str.ToString();
 	}
 
+	private int GetPathLength(int[] path)
+	{
+		int len = 0;
+
+		for (int i = 0; i < path.Length - 1; i++)
+		{
+			Node node = Nodes.Find(x => x.ID == path[i]);
+
+			len += node.Connections.Find(x => x.node.ID == path[i + 1]).weight;
+		}
+
+		return len;
+	}
+
 
 
 	/// <summary> Ищет и показывает лучший маршрут. </summary>
@@ -130,13 +165,15 @@ public class Graph : MonoBehaviour
 			return;
 
 		ClearFinalPath();
+		ScreenDebug.ClearResult();
 
 		float startTime = Time.realtimeSinceStartup;
-		var path = algorithm(Matrix, startNode.ID, endNode.ID);
+		var path = algorithm(MatrixCopy, startNode.ID, endNode.ID);
 
 		ScreenDebug.ShowTime(((Time.realtimeSinceStartup - startTime) * 1000f).ToString("f2"));
 
-		ValidateAndPrintPath(path);
+		if (ValidateAndPrintPath(path))
+			ScreenDebug.ShowResult(GetPathLength(path).ToString());
 	}
 
 
@@ -150,11 +187,12 @@ public class Graph : MonoBehaviour
 			return;
 
 		ScreenDebug.ClearTime();
+		ScreenDebug.ClearResult();
 
 		ClearFinalPath();
 		panelMover.ShowAlgorithmTeachingPanel();
 
-		AlgorithmTeacher.StartAlgorithmTeaching(algorithm, Matrix, startNode, endNode, findBestPathDelegate);
+		AlgorithmTeacher.StartAlgorithmTeaching(algorithm, MatrixCopy, startNode, endNode, findBestPathDelegate);
 	}
 
 
@@ -174,13 +212,13 @@ public class Graph : MonoBehaviour
 		if (ValidateStartEndNodes() && ValidatePath(path))
 		{
 			DrawPath(path, Color.yellow);
-			ScreenDebug.Log("Успешный путь: " + PathToString(path));
+			//ScreenDebug.Log("Успешный путь: " + PathToString(path));
 
 			return true;
 		}
 		else
 		{
-			ScreenDebug.LogWarning("Ошибка пути: " + PathToString(path));
+			ScreenDebug.LogWarning("Неверный путь: " + PathToString(path));
 
 			return false;
 		}
@@ -232,10 +270,6 @@ public class Graph : MonoBehaviour
 			if (!Nodes.Find(x => x.ID == path[i]).Connections.Any(x => x.node.ID == path[i + 1]))
 				return false;
 		}
-
-
-
-		// TODO: доп валидация?
 
 		return true;
 	}

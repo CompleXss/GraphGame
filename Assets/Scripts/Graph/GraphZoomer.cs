@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(LineDrawer))]
 public class GraphZoomer : MonoBehaviour
 {
-	public Canvas canvas; // TODO: private ?
+	[SerializeField] private Canvas canvas;
 	[SerializeField] private RectTransform dragZone;
 	[SerializeField]
 	private float

@@ -97,6 +97,12 @@ public class AlgorithmTeacher : MonoBehaviour
 		connectionsQueue = new Queue<(int, int)>();
 		var results = algorithm((int[,])matrix.Clone(), startNode.ID, endNode.ID);
 
+		if (results == null || results.Length < 1)
+		{
+			ScreenDebug.LogWarning("Выходной массив алгоритма обучения пустой или null.");
+			yield break;
+		}
+
 		stepSlider.maxValue = results.Length - 2; // Последний шаг == полный путь (выход из алгоритма), поэтому его нельзя выбрать на слайдере
 
 
@@ -111,7 +117,7 @@ public class AlgorithmTeacher : MonoBehaviour
 			if (Step > 0)
 				outputGraph.Show(results[Step - 1].graphCopy);
 			else
-				outputGraph.Show(matrix);
+				outputGraph.Show(null);
 
 			int[] path = results[Step].path;
 
@@ -152,11 +158,6 @@ public class AlgorithmTeacher : MonoBehaviour
 				connectionsQueue.Enqueue(ValueTuple.Create(path[nodeID - 1], path[nodeID]));
 			}
 			ScreenDebug.ShowTeachingMessage(results[Step].message);
-
-
-
-			// TODO: debug path ?
-			//Debug.Log(PathToString(path));
 
 
 
@@ -234,7 +235,7 @@ public class AlgorithmTeacher : MonoBehaviour
 		teachingCanGo = true;
 	}
 
-	// TODO: зум работает неправильно?
+
 
 	#region Node highlighting
 	public void ClearNodesHighlighting()

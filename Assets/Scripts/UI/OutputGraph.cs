@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +7,7 @@ using TMPro;
 [RequireComponent(typeof(GridLayoutGroup), typeof(RectTransform))]
 public class OutputGraph : MonoBehaviour
 {
-	[SerializeField] private TextMeshProUGUI noGraphText;
+	[SerializeField] private GameObject noGraphText;
 	[SerializeField] private MatrixCell cellPrefab;
 
 	[Header("Colors")]
@@ -76,7 +73,7 @@ public class OutputGraph : MonoBehaviour
 			}
 		}
 
-		noGraphText.enabled = false;
+		noGraphText.SetActive(false);
 	}
 
 	private void SetRTSize(Vector2Int matrixSize)
@@ -95,6 +92,8 @@ public class OutputGraph : MonoBehaviour
 	/// <summary> Отображает матрицу смежности в виде таблицы. </summary>
 	public void Show(int[,] graph)
 	{
+		noGraphText.SetActive(graph == null);
+
 		if (graph == null)
 			return;
 
@@ -122,7 +121,7 @@ public class OutputGraph : MonoBehaviour
 
 	public void DeleteGrid()
 	{
-		noGraphText.enabled = true;
+		noGraphText.SetActive(true);
 
 		matrixSize = Vector2Int.zero;
 		cells = null;

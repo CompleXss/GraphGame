@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -25,6 +23,14 @@ public class FileReader
 		}
 
 		return files.ToArray();
+	}
+
+	public string[] GetFileNamesInFolder(string folderPath, string searchPattern)
+	{
+		if (!Directory.Exists(folderPath))
+			return new string[0];
+
+		return Directory.GetFiles(folderPath, searchPattern);
 	}
 
 

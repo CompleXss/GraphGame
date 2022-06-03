@@ -158,6 +158,12 @@ public class Node : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDrag
 	{
 		ring.color = color;
 	}
+	public void UnMarkAs_StartEnd()
+	{
+		ring.color = Color.white;
+	}
+
+
 
 	public void Highlight(Color color)
 	{

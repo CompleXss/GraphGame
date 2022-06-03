@@ -107,7 +107,7 @@ public class PanelMover : MonoBehaviour
 			upPanel.SetActive(true);
 
 			// Уменьшить Драг Зону
-			dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, -upPanelRT.rect.height);
+			//dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, -upPanelRT.rect.height);
 
 			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, 0f), moveSpeed, null));
 		}
@@ -116,7 +116,7 @@ public class PanelMover : MonoBehaviour
 		else
 		{
 			// Увеличить Драг Зону
-			dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, upPanelRT.rect.height);
+			//dragZone.ChangeSize(DragZone.ChangeSizeSide.Top, upPanelRT.rect.height);
 
 			upPanelRoutine = StartCoroutine(MovePanel(upPanelRT, new Vector2(upPanelRT.anchoredPosition.x, upPanelRT.rect.height), moveSpeed, () =>
 			{
@@ -138,14 +138,14 @@ public class PanelMover : MonoBehaviour
 		if (moveSpeed <= 0f)
 			yield break;
 
-		float lastMoveSpeed = moveSpeed / 10;
+		float lastMoveSpeed = moveSpeed * 40;
 		float startMovingLinearDistance = (panel.anchoredPosition - targetPos).magnitude / 12;
 
 		while (panel.anchoredPosition != targetPos)
 		{
 			panel.anchoredPosition = (panel.anchoredPosition - targetPos).magnitude > startMovingLinearDistance
 				? panel.anchoredPosition = Vector2.Lerp(panel.anchoredPosition, targetPos, moveSpeed * Time.deltaTime)
-				: panel.anchoredPosition = Vector2.MoveTowards(panel.anchoredPosition, targetPos, lastMoveSpeed);
+				: panel.anchoredPosition = Vector2.MoveTowards(panel.anchoredPosition, targetPos, lastMoveSpeed * Time.deltaTime);
 
 			yield return new WaitForEndOfFrame();
 		}
