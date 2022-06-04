@@ -70,7 +70,7 @@ public class ScriptLoader
 
 
 			// Если в типе нет ни подходящих свойств, ни подходящих методов, ничего не выводить в логи
-			if (nameIsNull && findBestPathMethod == null && algorithmTeaching == null)
+			if (!nameIsNull || findBestPathMethod != null || algorithmTeaching != null)
 			{
 				foreach (var log in logs)
 					if (!string.IsNullOrWhiteSpace(log))
