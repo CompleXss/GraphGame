@@ -13,8 +13,8 @@
   - Узел с Красным кружком - конец пути
 - Над ним возможность выбрать от какой и до какой ноды будет производиться поиск пути
 - Слева от него выбор алгоритма
-  - Выпадающее меню, позволяющее выбрать "просто найди кратчайший путь" или "научи, как ты это делаешь" (либо только одну из этих функций, если реализованы не все)
-- Над алгоритмами кнопка загрузки кастомных алгоритмов из специальной папки
+  - Выпадающее меню, позволяющее выбрать "просто найди кратчайший путь" или "покажи, как ты это делаешь" (либо только одну из этих функций, если реализованы не все)
+- Над алгоритмами кнопка перезагрузки кастомных алгоритмов из специальной папки
 - В левом нижнем углу кнопка, открывающая окно дебага, позволяющее увидеть сообщения, предупреждения и ошибки, возникающие при компиляции / работе кастомных алгоритмов.
 
 ### Главное окно
@@ -26,8 +26,7 @@
 ## Экран режима "обучения"
 Заставляет пользователя пошагово пройтись по всем шагам выполнения алгоритма, чтобы понять / закрепить теоретические знания.
 
-### В наличии
-- В окне с узелами появились дополнительные обозначения
+- В окне с узлами появились дополнительные обозначения
   - Узел, покрашенный в Зеленый - начало пути текущего шага
   - Узел, покрашенный в Красный - конец пути текущего шага
   - Узел, покрашенный в Желтый - промежуточная точка пути текущего шага
@@ -58,7 +57,7 @@ in runtime without recompiling the app.
 - Above it, the ability to choose from which and to which node the path search will be performed
 - To the left of it there is the algorithm choice tab
   - Drop-down menu that allows you to choose "just start finding shortest path" or "learn me how you do it" (or only one of these functions, if one of them isn't implemented)
-- Above the algorithms there is a button that will read and compile custom algorithms from a special folder
+- Above the algorithms there is a button that will reload and compile custom algorithms from a special folder
 - In the lower left corner there is a button that opens debug window allowing you to see messages, warnings and errors that occur during compilation / work of custom algorithms.
 
 ### Main window
@@ -70,7 +69,6 @@ in runtime without recompiling the app.
 ## "Learning" mode window
 Forces the user to step through all the algorithm execution steps in order to understand/consolidate theoretical knowledge.
 
-### We have here
 - Additional marks appeared in the nodes window
   - Node colored Green - the beginning of the path of the current step
   - Node colored Red - the end of the path of the current step
